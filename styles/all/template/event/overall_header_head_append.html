@@ -1,1 +1,7 @@
-<!-- INCLUDECSS ../theme/<!-- IF S_IN_TOPIC_CALENDAR -->topic_calendar<!-- ELSEIF S_IN_MINI_CAL -->mini_cal<!-- ELSE -->posting_cal<!-- ENDIF -->.css -->
+<!-- IF S_IN_TOPIC_CALENDAR -->
+<!-- INCLUDECSS ../theme/topic_calendar.css -->
+<!-- ELSEIF S_IN_MINI_CAL -->
+<!-- INCLUDECSS ../theme/mini_cal.css -->
+<!-- ELSE -->
+<!-- INCLUDECSS ../theme/posting_cal.css -->
+<!-- ENDIF -->

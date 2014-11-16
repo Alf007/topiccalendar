@@ -2,7 +2,7 @@
     "name": "alf007/topiccalendar",
     "type": "phpbb-extension",
     "description": "Topic Calendar Extension for phpBB 3.1, conversion from MyCalendar",
-    "homepage": "",
+    "homepage": "https://github.com/Alf007/topiccalendar",
     "version": "1.0.0-b1",
     "time": "2014-11-08",
     "license": "GPL-2.0",
@@ -10,7 +10,7 @@
         {
             "name": "Alf007",
             "email": "alf007@free.fr",
-            "homepage": "http://cercledefea.net/",
+            "homepage": "http://alf007.free.fr/",
             "role": "Developper"
         },
         {

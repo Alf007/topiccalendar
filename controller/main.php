@@ -71,7 +71,7 @@ class main
         $this->user->add_lang_ext('alf007/topiccalendar', 'controller');
         
         // Define the information for the current date
-        list($today['year'], $today['month'], $today['day']) = explode('-', $user->format_date(time(), 'Y-m-d'));
+        list($today['year'], $today['month'], $today['day']) = explode('-', $this->user->format_date(time(), 'Y-m-d'));
 
         if ($month != 0 && $year != 0)
         {

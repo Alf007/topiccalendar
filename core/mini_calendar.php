@@ -51,8 +51,6 @@ class mini_calendar
     
     public function display_mini_calendar()
     {
-        include($this->root_path . 'includes/functions_topiccalendar.' . $phpEx);
-
         $this->user->add_lang_ext('alf007/topiccalendar', 'controller');
 
         // Limits the number of events shown on the mini cal

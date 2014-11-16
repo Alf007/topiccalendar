@@ -13,6 +13,7 @@ namespace alf007\topiccalendar\event;
 * @ignore
 */
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use alf007\topiccalendar\includes\functions_topic_calendar;
 
 /**
 * Event listener
@@ -51,11 +52,16 @@ class main_listener implements EventSubscriberInterface
     /* @var \phpbb\template\template */
     protected $template;
 
+    /* @var \phpbb\user */
+    protected $user;
+
     /** @var string PHP extension */
     protected $phpEx;
 
     protected $topic_calendar_table;
 
+    public $topiccal;
+    
     /**
     * Constructor
     *
@@ -63,18 +69,21 @@ class main_listener implements EventSubscriberInterface
     * @param \phpbb\controller\helper	$helper		Controller helper object
     * @param \phpbb\request\request_interface   $request        Request variables
     * @param \phpbb\template			$template	Template object
+    * @param \phpbb\user                        $user
     * @param string $phpEx      php file extension
     * @param string $ext_table  extension table name
     * @access public
     */
-    public function __construct(\phpbb\db\driver\driver_interface $db, \phpbb\controller\helper $helper, \phpbb\request\request_interface $request, \phpbb\template\template $template, $phpEx, $ext_table)
+    public function __construct(\phpbb\db\driver\driver_interface $db, \phpbb\controller\helper $helper, \phpbb\request\request_interface $request, \phpbb\template\template $template, \phpbb\user $user, $phpEx, $ext_table)
     {
         $this->db = $db;
         $this->helper = $helper;
         $this->request = $request;
         $this->template = $template;
+        $this->user = $user;
         $this->phpEx = $phpEx;
         $this->topic_calendar_table = $ext_table;
+        $this->topiccal = new functions_topic_calendar;
     }
 
     /**
@@ -133,7 +142,7 @@ class main_listener implements EventSubscriberInterface
             $forum_id = $this->request->variable('f', 0);
             $topic_id = $this->request->variable('t', 0);
             $post_id = $this->request->variable('p', 0);
-            mycal_generate_entry($mode, $forum_id, $topic_id, $post_id, $this->template);
+            $this->topiccal->generate_entry($mode, $forum_id, $topic_id, $post_id, $this->template);
         }
 
     }
@@ -259,7 +268,7 @@ class main_listener implements EventSubscriberInterface
     public function move_topics($event)
     {
         include('functions_topiccalendar' . $this->phpEx);
-        topiccal_move_event($event['forum_id'], $event['topic_ids']);
+        $this->topiccal->move_event($event['forum_id'], $event['topic_ids']);
     }
     
     /**
@@ -334,7 +343,7 @@ class main_listener implements EventSubscriberInterface
     {
         $topic_row = $event['topic_row'];
         $topic_row[] = array (
-            'EVENT' => topiccal_show_event($topic_row['topic_id'], 0)
+            'EVENT' => $this->topiccal->show_event($topic_row['topic_id'], 0)
         );
         $event['topic_row'] = $topic_row;
     }
@@ -384,8 +393,8 @@ class main_listener implements EventSubscriberInterface
     {
         $post_row = $event['post_row'];
         $post_row[] = array (
-            'EVENT'         => topiccal_show_event($topic_id, $post_row['row'][$post_row['topic_data']['post_id']]),
+            'EVENT'         => $this->topiccal->show_event($topic_id, $post_row['row'][$post_row['topic_data']['post_id']]),
         );
         $event['post_row'] = $post_row;
-   }
+    }
 }
