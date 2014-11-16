@@ -10,7 +10,7 @@
         {
             "name": "Alf007",
             "email": "alf007@free.fr",
-            "homepage": "http://cercledefea.net",
+            "homepage": "http://cercledefea.net/",
             "role": "Developper"
         },
         {
@@ -23,6 +23,9 @@
     "require": {
         "php": ">=5.3.3",
         "composer/installers": "~1.0"
+    },
+    "require-dev": {
+        "phpbb/epv": "dev-master"
     },
     "extra": {
         "display-name": "Topic Calendar",
