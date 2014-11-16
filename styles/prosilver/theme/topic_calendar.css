@@ -1,0 +1,90 @@
+/* Topic Calendar styles
+*/
+
+.calendar, .monthyear, .dayheaders, .days {
+	width: 99.8%;
+	overflow: hidden;
+	margin: 0px;
+	padding: 0px;
+	padding-left: 0.26em;
+	text-align: center;
+}
+.calendar ul {
+	list-style-type: none;
+}
+.monthyear li {
+	display: block;
+	height: 4%;
+	width: 79%;
+	font-weight: bold;
+	padding-top: 2px;
+}
+.monthyear li.previous, .monthyear li.next {
+	width: 5%;
+}
+ul.dayheaders {
+	margin-top: 2px;
+	margin-bottom: 2px;
+}
+.dayheaders li, .days li {
+	width: 14%;
+}
+.dayheaders li {
+	display: block;
+	height: 2em;
+	border-left: 1px solid #FFFFFF;
+	border-right: 1px solid #8F8F8F;
+}
+li.notaday, li.day {
+	display: block;
+	height: 9em;
+	overflow: hidden;
+}
+li.notaday {
+	padding-left: 1px;
+	padding-right: 1px;
+}
+.notaday {
+	vertical-align: middle;
+}
+li.day {
+	padding: 0;
+	border-left: 1px solid #FFFFFF;
+	border-right: 1px solid #8F8F8F;
+	overflow-y: auto;
+}
+.calendar li.event {
+	font-style: italic;
+}
+.monthyear li, .dayheaders li, .days li {
+	float: left;
+}
+.today {
+	font-weight: bold;
+	background: #ffe4e4;
+}
+ul.event {
+	display: block;
+	width: 100%;
+	list-style-type: none;
+	padding-left: 1em;
+}
+.event li {
+	width: 90%;
+	text-align: left;
+}
+div.domTT {
+	background-color: #CFE1F6; 
+	padding: 3px;
+	border: 1px #FAFAFA solid;
+}
+div.domTTContent {
+	font-size : 1.1em; 
+}
+div.bar {
+	background: url(./images/event_block_bar.gif) repeat-x center center;
+	text-align: right;
+}
+.bar img {
+	padding-top: 1px;
+}

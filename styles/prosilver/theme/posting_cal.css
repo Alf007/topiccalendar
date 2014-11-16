@@ -1,0 +1,66 @@
+/* Topic Calendar styles for posting calendar
+*/
+
+#topic-calendar-panel img, #topic-calendar-panel select {
+	vertical-align: middle;
+}
+ol {
+	list-style: none;
+}
+.calendar, .monthyear, .dayheaders {
+	width: 18em;
+	overflow: hidden;
+	margin: 0px;
+	padding: 0px;
+	padding-left: 0.25em;
+	text-align: center;
+}
+.calendar li a {
+	display: block;
+}
+.calendar li {
+	width: 2.3em;
+	height: 2.3em;
+	margin: 0.1em;
+	background-position: top left;
+	display: inline; /* For IE */
+}
+.calendar li a {
+	display: block;
+	width: 2.3em;
+	height: 1.8em;
+	padding-top: 0.5em;
+	background-position: bottom right;
+}
+.monthyear li {
+	display: block;
+	height: 2em;
+	width: 12em;
+}
+.monthyear li.previous, .monthyear li.next {
+	width: 2.5em;
+}
+.dayheaders li.left {
+	width: 2.5em;
+}
+.dayheaders li {
+	display: block;
+	width: 2.5em;
+	height: 1.5em;
+}
+.calendar li, .monthyear li, .dayheaders li {
+	float: left;
+}
+.calendar a {
+	text-decoration: none;	
+}
+.calendar li:hover {
+	background-color: #ccb;
+}
+.sundaystart .firstday { margin-left: 0.1px; }
+.mondaystart .firstday { margin-left: 2.6em; }
+.tuesdaystart .firstday { margin-left: 5.1em; }
+.wednesdaystart .firstday { margin-left: 7.6em; }
+.thursdaystart .firstday { margin-left: 10.1em; }
+.fridaystart .firstday { margin-left: 12.6em; }
+.saturdaystart .firstday { margin-left: 15.1em; }

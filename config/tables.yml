@@ -1,0 +1,2 @@
+parameters:
+    tables.topic_calendar: %core.table_prefix%topic_calendar

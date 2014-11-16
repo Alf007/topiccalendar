@@ -1,0 +1,35 @@
+imports:
+    - { resource: tables.yml }
+
+services:
+    alf007.topiccalendar.controller:
+        class: alf007\topiccalendar\controller\main
+        arguments:
+            - @auth
+            - @config
+            - @dbal.conn
+            - @controller.helper
+            - @template
+            - @user
+            - %core.root_path%
+            - %core.php_ext%
+    alf007.topiccalendar.listener:
+        class:  alf007\topiccalendar\event\main_listener
+        arguments:
+            - @dbal.conn
+            - @controller.helper
+            - @request
+            - @template
+            - %core.php_ext%
+            - %tables.topic_calendar%
+        tags:
+            - { name: event.listener }
+    alf007.topiccalendar.core:
+        class: alf007\topiccalendar\core\mini_calendar
+        arguments:
+            - @auth
+            - @dbal.conn
+            - @request
+            - @template
+            - @user
+            - %core.root_path%

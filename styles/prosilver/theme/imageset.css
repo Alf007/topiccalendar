@@ -1,0 +1,60 @@
+/* Former imageset */
+span.imageset {
+	display: inline-block !important;
+	background: transparent none 0 0 no-repeat;
+	margin: 0;
+	padding: 0;
+	width: 0;
+	height: 0;
+	overflow: hidden;
+}
+
+/* Extension imageset items */
+.imageset.event_block_arrow {
+	background-image: url("./images/event_block_arrow.gif");
+	padding-left: 12px;
+	padding-top: 12px;
+}
+.imageset.event_block_bar {
+	background-image: url("./images/event_block_bar.gif");
+	padding-left: 12px;
+	padding-top: 12px;
+}
+.imageset.event_block_end {
+	background-image: url("./images/event_block_end.gif");
+	padding-left: 12px;
+	padding-top: 12px;
+}
+.imageset.icon_calendar {
+	background-image: url("./images/icon_calendar.gif");
+	padding-left: 16px;
+	padding-top: 15px;
+}
+.imageset.icon_double_left_arrow {
+	background-image: url("./images/icon_double_left_arrow.gif");
+	padding-left: 20px;
+	padding-top: 19px;
+}
+.imageset.icon_double_right_arrow {
+	background-image: url("./images/icon_double_right_arrow.gif");
+	padding-left: 20px;
+	padding-top: 19px;
+}
+.imageset.icon_left_arrow {
+	background-image: url("./images/icon_left_arrow.gif");
+	padding-left: 20px;
+	padding-top: 19px;
+}
+.imageset.icon_mini_calendar {
+	background-image: url("./images/icon_mini_calendar.gif");
+	padding-left: 12px;
+	padding-top: 13px;
+}
+.imageset.icon_right_arrow {
+	background-image: url("./images/icon_right_arrow.gif");
+	padding-left: 20px;
+	padding-top: 19px;
+}
+.icon-calendar {
+    background-image: url("./images/icon_calendar.gif");
+}

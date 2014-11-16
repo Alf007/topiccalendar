@@ -1,0 +1,9 @@
+alf007_topiccalendar_controller:
+   pattern: /topiccalendar
+   defaults: { _controller: alf007.topiccalendar.controller:handle, month: 0, year: 0 }
+alf007_topiccalendar_controller:
+   pattern: /topiccalendar/{month, year}
+   defaults: { _controller: alf007.topiccalendar.controller:handle }
+   requirements:
+       month: \d+
+       year: \d+

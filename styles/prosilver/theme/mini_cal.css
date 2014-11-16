@@ -1,0 +1,92 @@
+/* Topic Calendar styles for Mini Calendar
+*/
+
+.calendar, .monthyear, .dayheaders, .days {
+	width: 99.5%;
+	overflow: hidden;
+	margin: 0px;
+	padding: 0px;
+	padding-left: 0.25em;
+	text-align: center;
+}
+.calendar ul {
+	list-style-type: none;
+}
+.calendar li.header {
+	text-align: left; 
+}
+.monthyear li {
+	display: block;
+	height: 2em;
+	width: 89%;
+	font-weight: bold;
+	padding-top: 2px;
+}
+.monthyear li.previous, .monthyear li.next {
+	width: 5%;
+}
+ul.dayheaders {
+	margin-top: 2px;
+	margin-bottom: 2px;
+}
+.dayheaders li, .days li {
+	display: block;
+	width: 13%;
+}
+.dayheaders li {
+	height: 1.5em;
+	border-left: 1px solid #FFFFFF;
+	border-right: 1px solid #8F8F8F;
+}
+ul.days {
+	margin: 0;
+	width: 100%;
+}
+li.notaday, li.day {
+	height: 2.2em;
+}
+li.notaday {
+	padding-left: 1px;
+	padding-right: 1px;
+}
+li.day {
+	border-left: 1px solid #FFFFFF;
+	border-right: 1px solid #8F8F8F;
+}
+.calendar li.event {
+	font-style: italic;
+	font-weight: bold;
+}
+.monthyear li, .dayheaders li, .days li {
+	float: left;
+}
+.today {
+	font-weight: bold;
+	background: #C0C0FF;
+}
+
+#events ul {
+	list-style-type: none;
+	width: 100%;
+}
+#events .header dt {
+	width: 100%;
+}
+.events li {
+	display: block;
+	clear: both;
+	padding-left: 0.1em;
+}
+.events li.noview {
+	font-style: italic;
+}
+.events table {
+	width: 100%;
+}
+td.date {
+	width: 6em;
+	margin-right: 5px;
+}
+.events td {
+	align: left;
+}
