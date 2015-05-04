@@ -75,22 +75,17 @@ function sendDate(month, day, year)
 </script>
 
 <div class="panel bg3" id="topic-calendar-panel">
-	<div class="inner"><span class="corners-top"><span></span></span>
+	<div class="inner"><span class="corners-top"><span> </span></span>
 
 	<fieldset class="fields2">
 		<dl>
 			<dt><label for="cal_date">{L_EVENT_START}:</label></dt>
-			<dd><input type="text" class="inputbox autowidth" id="cal_date" name="cal_date" size="10" maxlength="10" onFocus="this.blur();" value="{CAL_DATE}" title="{L_EVENT_START}" /> <a href="javascript: void(0);" onClick="select_date(document.forms[form_name].cal_date);" title="{L_DATE_SELECTOR_TITLE}"><img src="images/topic_calendar.gif" border="0" alt="{L_DATE_SELECTOR_TITLE}" /></a> <input type="button" class="button2" onClick="this.form.cal_date.value = '{CAL_NO_DATE}'; this.form.cal_date_end.value = '{CAL_NO_DATE}';" value="{L_CLEAR_DATE}" /> <input type="checkbox" name="cal_interval_date" value="1" onClick="if (document.getElementById) { toggle_cal_form_advanced = document.getElementById('cal_form_advanced').style; } else { alert('Upgrade your browser!'); return; } if (toggle_cal_form_advanced.display == 'none') { toggle_cal_form_advanced.display = ''; } else { toggle_cal_form_advanced.display = 'none'; }" {CAL_ADVANCED_FORM_ON}/> {L_CALENDAR_ADVANCED}</dd>
-		</dl>
-		<dl id="cal_form_advanced" style="display: {CAL_ADVANCED_FORM};">
-			<dt><label for="cal_date_end">{L_EVENT_END}:</label></dt>
-			<dd><input type="text" class="inputbox autowidth" id="cal_date_end" name="cal_date_end" size="10" maxlength="10" onFocus="this.blur();" value="{CAL_DATE_END}" title="{L_EVENT_END}" /> <a href="javascript: void(0);" onClick="if (document.forms[form_name].cal_date.value == '{CAL_NO_DATE}') { alert('{L_SELECT_START_DATE}'); } select_date(document.forms[form_name].cal_date_end);" title="{L_DATE_SELECTOR_TITLE}"><img src="images/topic_calendar.gif" border="0" alt="{L_DATE_SELECTOR_TITLE}" /></a> <input type="button" class="button2" onClick="this.form.cal_date_end.value = '{CAL_NO_DATE}';" value="{L_CLEAR_DATE}" /></dd>
-			<dd><input type="text" class="inputbox autowidth" name="cal_interval" value="{CAL_INTERVAL}" size="3" /> <select class="select autowidth" name="cal_interval_units" title="{L_SEL_INTERVAL}">{CAL_INTERVAL_UNIT_OPTIONS}</select> <input type="checkbox" name="cal_repeat_always" value="1" onClick="if (this.checked) { this.form.cal_date_end.value = '{CAL_NO_DATE}' }" {CAL_REPEAT_ALWAYS}/> {L_CAL_REPEAT_FOREVER}</dd>
+			<dd><input type="text" class="inputbox autowidth" id="cal_date" name="cal_date" size="10" maxlength="10" onFocus="this.blur();" value="{CAL_DATE}" title="{L_EVENT_START}" /> <a href="javascript: void(0);" onClick="select_date(document.forms[form_name].cal_date);" title="{L_DATE_SELECTOR_TITLE}"><img src="images/topic_calendar.gif" border="0" alt="{L_DATE_SELECTOR_TITLE}" /></a> <input type="button" class="button2" onClick="this.form.cal_date.value = '{CAL_NO_DATE}';" value="{L_CLEAR_DATE}" /></dd>
 		</dl>
 	</fieldset>
 
 	<div id="date_picker" style="display: none;">
 	</div>
 
-	<span class="corners-bottom"><span></span></span></div>
+	<span class="corners-bottom"><span> </span></span></div>
 </div>

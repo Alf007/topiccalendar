@@ -18,5 +18,5 @@ if (empty($lang) || !is_array($lang))
 }
 
 $lang = array_merge($lang, array(
-    'ENABLE_EVENTS'	=> 'Authoriser les évènements de Calendrier'
+    'ENABLE_EVENTS'	=> 'Autoriser les évènements de Calendrier'
 ));

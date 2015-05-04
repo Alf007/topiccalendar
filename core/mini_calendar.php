@@ -81,25 +81,22 @@ class mini_calendar
                 $month = 1;
                 $year++;
         }
+       	$display_date = new \DateTime($today['year'] . '-' . $today['month'] . '-01');
         if ($month != 0 && $year != 0)
         {
-                $view_isodate = sprintf('%04d', $year) . '-' . sprintf('%02d', $month) . '-01 00:00:00';
-        } else
-        {	// get the first day of the month as an isodate
-                $view_isodate = $today['year'] . '-' . $today['month'] . '-01 00:00:00';
+        	$display_date->setDate($year, $month, 1);
         }
+		$display_date_ahead = new \DateTime();
+		$display_date_ahead->add(new \DateInterval('P' . MINI_CAL_DAYS_AHEAD . 'D')); 
 
         // setup the current view information
-        $sql = "SELECT
-                MONTHNAME('$view_isodate') as monthName,
-                DATE_FORMAT('$view_isodate', '%m') as month,
-                YEAR('$view_isodate') as year,
-                DATE_FORMAT(CONCAT(YEAR('$view_isodate'), '-', MONTH('$view_isodate' + INTERVAL 1 MONTH), '-01') - INTERVAL 1 DAY, '%e') as numDays,
-                WEEKDAY('$view_isodate') as offset";
-        $result = $this->db->sql_query($sql);
-        $monthView = $this->db->sql_fetchrow($result);
-        $this->db->sql_freeresult($result);
-        $monthView['monthName'] = $this->user->lang['datetime'][$monthView['monthName']];
+		$monthView = array(
+			'monthName'	=>	$this->user->lang['datetime'][$display_date->format('F')],
+			'month'	=>	$display_date->format('m'),
+			'year'	=>	$display_date->format('Y'),
+			'numDays'	=>	$display_date->format('t'),
+			'offset'	=>	$display_date->format('w'),
+		);
 
         // [*] is this going to give us a negative number ever?? [*]
         if ($this->user->lang['WEEKDAY_START'] != 1)
@@ -250,9 +247,9 @@ class mini_calendar
                 // set the isodate for our current mark in the calendar (padding day appropriately)
                 $current_isodate .= ' 00:00:00';
                 $sql_array = array(
-                        'SELECT'	=> "c.*, (cal_interval_units = 'DAY' && cal_interval = 1 && '$current_isodate' = INTERVAL (cal_interval * (cal_repeat - 1)) DAY + cal_date) as block_end, t.topic_title" .$mini_cal_auth_read_sql,
+                        'SELECT'	=> "c.*, t.topic_title" .$mini_cal_auth_read_sql,
                         'FROM'		=> array(
-                            TOPIC_CALENDAR_TABLE	=> 'c',
+                            $topic_calendar_table	=> 'c',
                             TOPICS_TABLE		=> 't',
                             FORUMS_TABLE		=> 'f'
                         ),
@@ -261,46 +258,8 @@ class mini_calendar
                             $mini_cal_auth_sql
                             AND f.enable_events > 0 
                             AND '$current_isodate' >= cal_date
-                            AND
-                            (
-                                cal_repeat = 0 
-                                OR
-                                (
-                                    cal_repeat > 0 
-                                    AND
-                                    (
-                                        (cal_interval_units = 'DAY' AND ('$current_isodate' <= INTERVAL (cal_interval * (cal_repeat - 1)) DAY + cal_date))
-                                        OR (cal_interval_units = 'WEEK' AND ('$current_isodate' <= INTERVAL ((cal_interval * (cal_repeat - 1)) * 7) DAY + cal_date))
-                                        OR (cal_interval_units = 'MONTH' AND ('$current_isodate' <= INTERVAL (cal_interval * (cal_repeat - 1)) MONTH + cal_date))
-                                        OR (cal_interval_units = 'YEAR' AND ('$current_isodate' <= INTERVAL (cal_interval * (cal_repeat - 1)) YEAR + cal_date))
-                                    )
-                                )
-                            )
-                            AND
-                            (
-                                (
-                                    cal_interval_units = 'DAY' 
-                                    AND (TO_DAYS('$current_isodate') - TO_DAYS(cal_date)) % cal_interval = 0
-                                ) 
-                                OR
-                                (
-                                    cal_interval_units = 'WEEK' 
-                                    AND (TO_DAYS('$current_isodate') - TO_DAYS(cal_date)) % (7 * cal_interval) = 0
-                                )
-                                OR
-                                (
-                                    cal_interval_units = 'MONTH' 
-                                    AND DAYOFMONTH(cal_date) = DAYOFMONTH('$current_isodate') 
-                                    AND PERIOD_DIFF(DATE_FORMAT('$current_isodate', '%Y%m'), DATE_FORMAT(cal_date, '%Y%m')) % cal_interval = 0
-                                )
-                                OR 
-                                (
-                                    cal_interval_units = 'YEAR' 
-                                    AND DATE_FORMAT(cal_date, '%m%d') = DATE_FORMAT('$current_isodate', '%m%d') 
-                                    AND (YEAR('$current_isodate') - YEAR(cal_date)) % cal_interval = 0
-                                )
                             )",
-                        'ORDER_BY'	=> 'cal_interval_units ASC, cal_date ASC, cal_repeat DESC'
+                        'ORDER_BY'	=> 'cal_date ASC'
                 );
                 $sql = $this->db->sql_build_query('SELECT', $sql_array);
                 $result = $this->db->sql_query($sql);
@@ -364,13 +323,13 @@ class mini_calendar
         }
 
         // initialise some sql bits
-        $days_ahead_sql = (MINI_CAL_DAYS_AHEAD > 0) ? " AND (c.cal_date <= DATE_ADD(CURDATE(), INTERVAL " . MINI_CAL_DAYS_AHEAD . " DAY)) " : '';
+        $days_ahead_sql = (MINI_CAL_DAYS_AHEAD > 0) ? " AND (c.cal_date <= " . $display_date_ahead->format('Y-m-d H:i:s') . ") " : '';
 
         // get the events 
         $sql_array = array(
                 'SELECT'	=> 'c.topic_id, c.cal_date, c.forum_id, MONTH(c.cal_date) as cal_month, DAYOFWEEK(c.cal_date) as cal_weekday, DAYOFMONTH(c.cal_date) as cal_monthday, YEAR(c.cal_date) as cal_year, HOUR(c.cal_date) as cal_hour, MINUTE(c.cal_date) as cal_min, SECOND(c.cal_date) as cal_sec, t.topic_title' . $mini_cal_auth_read_sql,
                 'FROM'		=> array( 
-                    TOPIC_CALENDAR_TABLE	=> 'c',
+                    $topic_calendar_table	=> 'c',
                     TOPICS_TABLE		=> 't',
                     FORUMS_TABLE		=> 'f'
                 ),
@@ -474,7 +433,7 @@ class mini_calendar
         $prev_month = append_sid("{$this->root_path}index.$phpEx", 'month=' . ($month - 1));
         $next_month = append_sid("{$this->root_path}index.$phpEx", 'month=' . ($month + 1));
         $this->template->assign_vars(array(
-                'U_MINI_CAL_CALENDAR' => append_sid("{$this->root_path}topiccalendar.$phpEx"),
+                'U_MINI_CAL_CALENDAR' => $this->helper->route('alf007_topiccalendar_controller'),
                 'U_PREV_MONTH' => $prev_month,
                 'U_NEXT_MONTH' => $next_month,
                 )

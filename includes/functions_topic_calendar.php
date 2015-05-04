@@ -48,7 +48,7 @@ class functions_topic_calendar
                     $db->sql_freeresult($result);
             }
 
-            return $forum_id < count($events_forums) && $events_forums[$forum_id] ? $events_forums[$forum_id] : false;
+            return $forum_id > 0 && $forum_id < count($events_forums) && $events_forums[$forum_id] ? $events_forums[$forum_id] : false;
     }
 
     /**
@@ -77,77 +77,14 @@ class functions_topic_calendar
 
             // setup defaults
             $cal_isodate = date2iso(request_var('cal_date', $user->lang['NO_DATE']));
-            $cal_repeat = 1;
-
-            // get the ending date and interval information
-            $cal_interval_date = request_var('cal_interval_date', false);
-            $cal_date_end = request_var('cal_date_end', $user->lang['NO_DATE']);
-            $cal_repeat_always = request_var('cal_repeat_always', false);
-
-            $cal_interval = request_var('cal_interval', 1);
-            $cal_interval_units = request_var('cal_interval_units', 'DAY');
-            if ($cal_interval_units != 'DAY' && $cal_interval_units != 'WEEK' && $cal_interval_units != 'MONTH' && $cal_interval_units != 'YEAR')
-            {
-                    trigger_error('Invalid interval unit!');
-            }
-
-            if ($cal_isodate && $cal_interval_date && ($cal_date_end != $user->lang['NO_DATE'] || $cal_repeat_always))
-            {
-                    // coax the interval to a postive integer
-                    $cal_interval = ($tmp_interval = abs($cal_interval)) ? $tmp_interval : 1;
-                    if ($cal_repeat_always)
-                    {
-                            $cal_repeat = 0;
-                    } else if ($cal_date_end != $user->lang['NO_DATE'])
-                    {
-                            $cal_isodate_end = date2iso($cal_date_end);
-                            // make sure the end is not before the beginning, if so swap
-                            if ($cal_isodate_end < $cal_isodate) {
-                                    $tmp = $cal_isodate_end;
-                                    $cal_isodate_end = $cal_isodate;
-                                    $cal_isodate = $tmp;
-                            }
-
-                            // get the number of repeats between the two dates of the interval
-                            $sql = 'SELECT ';
-                            if ($cal_interval_units == 'DAY')
-                            {
-                                    $sql .= "FLOOR((TO_DAYS('$cal_isodate_end') - TO_DAYS('$cal_isodate'))/$cal_interval + 1)";
-                            } else if ($cal_interval_units == 'WEEK')
-                            {
-                                    $sql .= "FLOOR((TO_DAYS('$cal_isodate_end') - TO_DAYS('$cal_isodate'))/(7 * $cal_interval) + 1)";
-                            } else if ($cal_interval_units == 'MONTH')
-                            {
-                                    $sql .= "FLOOR(PERIOD_DIFF(DATE_FORMAT('$cal_isodate_end', '%Y%m'), DATE_FORMAT('$cal_isodate', '%Y%m'))/$cal_interval + 1)";
-                            } else if ($cal_interval_units == 'YEAR')
-                            {
-                                    $sql .= "FLOOR((YEAR('$cal_isodate_end') - YEAR('$cal_isodate'))/$cal_interval + 1)";
-                            }
-
-                            $sql .= ' as cal_repeat';
-                            $result = $db->sql_query($sql);
-                            if (!$row = $db->sql_fetchrow($result))
-                            {
-                                    trigger_error('TopicCalendar_NoRepeatMult');
-                            } else if (empty($row['cal_repeat']))
-                            {
-                                    trigger_error('TopicCalendar_NoRepeatMult');
-                            }
-                            $db->sql_freeresult($result);
-                            $cal_repeat = $row['cal_repeat'];
-                    }
-            }
 
             // if this is a new topic and we can post a date to it (do we have to check this) and
             // we have specified a date, then go ahead and enter it
             if ($mode == 'post' && $cal_isodate && forum_check($forum_id))
             {
-                    $sql = 'INSERT INTO ' . TOPIC_CALENDAR_TABLE . ' ' . $db->sql_build_array('INSERT', array(
+                    $sql = 'INSERT INTO ' . $topic_calendar_table . ' ' . $db->sql_build_array('INSERT', array(
                                        'topic_id'			=> (int)$topic_id,
                                        'cal_date'			=> (string)$cal_isodate,
-                                       'cal_interval'		=> (int)$cal_interval,
-                                       'cal_interval_units'	=> (string)$cal_interval_units,
-                                       'cal_repeat'			=> (int)$cal_repeat,
                                        'forum_id'			=> (int)$forum_id,
                                     ));
 
@@ -164,7 +101,7 @@ class functions_topic_calendar
                     }
 
                     $sql = 'SELECT topic_id ' .
-                                    'FROM ' . TOPIC_CALENDAR_TABLE . ' ' .
+                                    'FROM ' . $topic_calendar_table . ' ' .
                                     'WHERE ' . $db->sql_build_array('SELECT', array(
                                             'topic_id' => (int)$topic_id
                                     ));
@@ -178,18 +115,15 @@ class functions_topic_calendar
                             // we took away the calendar date (no start date, no date)
                             if (!$cal_isodate)
                             {
-                                    $sql = 'DELETE FROM ' . TOPIC_CALENDAR_TABLE . ' ' .
+                                    $sql = 'DELETE FROM ' . $topic_calendar_table . ' ' .
                                                             'WHERE ' . $db->sql_build_array('SELECT', array(
                                                                     'topic_id' => (int)$topic_id
                                                             ));
                                     $db->sql_query($sql);
                             } else
                             {
-                                    $sql = 'UPDATE ' . TOPIC_CALENDAR_TABLE . ' SET ' . $db->sql_build_array('UPDATE', array(
+                                    $sql = 'UPDATE ' . $topic_calendar_table . ' SET ' . $db->sql_build_array('UPDATE', array(
                                                             'cal_date' 				=> (string)$cal_isodate,
-                                                            'cal_interval'			=> (int)$cal_interval,
-                                                            'cal_interval_units'	=> (string)$cal_interval_units,
-                                                            'cal_repeat'			=> (int)$cal_repeat
                                                     )) . ' WHERE ' . $db->sql_build_array('SELECT', array(
                                                             'topic_id'	=> (int)$topic_id
                                                     ));
@@ -199,12 +133,9 @@ class functions_topic_calendar
                     // insert the new entry if a date was provided
                     else if ($cal_isodate)
                     {
-                            $sql = 'INSERT INTO ' . TOPIC_CALENDAR_TABLE . ' ' . $db->sql_build_array('INSERT', array(
+                            $sql = 'INSERT INTO ' . $topic_calendar_table . ' ' . $db->sql_build_array('INSERT', array(
                                        'topic_id'			=> (int)$topic_id,
                                        'cal_date'			=> (string)$cal_isodate,
-                                       'cal_interval'		=> (int)$cal_interval,
-                                       'cal_interval_units'	=> (string)$cal_interval_units,
-                                       'cal_repeat'			=> (int)$cal_repeat,
                                        'forum_id'			=> (int)$forum_id
                                     ));
 
@@ -229,7 +160,7 @@ class functions_topic_calendar
                     }
             } else
             {
-                    $sql = 'UPDATE ' . TOPIC_CALENDAR_TABLE . ' SET ' . $db->sql_build_array('UPDATE', array(
+                    $sql = 'UPDATE ' . $topic_calendar_table . ' SET ' . $db->sql_build_array('UPDATE', array(
                                             'forum_id' => (int)$new_forum_id
                                     )) . ' WHERE ' . $db->sql_build_array('SELECT', array(
                                             'topic_id' => (int)$topic_id
@@ -267,9 +198,9 @@ class functions_topic_calendar
                     $sql_where['t.topic_first_post_id'] = (int)$post_id;
             }
             $sql_array = array(
-                    'SELECT'	=> 'c.cal_date, DATE_FORMAT(c.cal_date, "' . $format . '") as cal_date_f, c.cal_interval, c.cal_interval_units, c.cal_repeat, DATE_FORMAT(c.cal_date + INTERVAL (c.cal_repeat - 1) DAY, "%M %D, %Y") as cal_date_end ',
+                    'SELECT'	=> 'c.cal_date, DATE_FORMAT(c.cal_date, "' . $format . '") as cal_date_f ',
                     'FROM'		=> array(
-                            TOPIC_CALENDAR_TABLE	=> 'c',
+                            $topic_calendar_table	=> 'c',
                             TOPICS_TABLE		=> 't',
                             FORUMS_TABLE		=> 'f'
                     ),
@@ -285,34 +216,7 @@ class functions_topic_calendar
             {
                     $cal_date = $row['cal_date'];
                     $cal_date_f = $row['cal_date_f'];
-                    $cal_interval = $row['cal_interval'];
-                    $cal_repeat = $row['cal_repeat'];
                     $event['message'] = '<i>' . translate_date($cal_date_f) . '</i>';
-                    // if this is more than a single date event, then dig deeper
-                    if ($row['cal_repeat'] != 1)
-                    {
-                            // if this is a repeating or block event (repeat > 1), show end date!
-                            if ($row['cal_repeat'] > 1)
-                            {
-                                    // have to pull a little tweak on WEEK since the interval doesn't exist in SQL
-                                    $units = $row['cal_interval_units'] == 'WEEK' ? '* 7 DAY' : $row['cal_interval_units'];
-                                    // we have to do another query here because SQL does not allow interval units to be a field variable
-                                    $sql2 = 'SELECT DATE_FORMAT(\'' . $cal_date . '\' + INTERVAL ' . $cal_interval . ' * (' . $cal_repeat . ' - 1) ' . $units . ', "' . $format . '") as cal_date_end ';
-                                    $result2 = $db->sql_query($sql2);
-                                    $row2 = $db->sql_fetchrow($result2);
-                                    $db->sql_freeresult($result2);
-                                    $cal_date_end = $row2['cal_date_end'];
-                                    $event['message'] .= ' - <i>' . translate_date($cal_date_end) . '</i>';
-                            }
-
-                            // we have a non-continuous interval or a 'forever' repeating event, so we will explain it
-                            if (!($row['cal_interval_units'] == 'DAY' && $cal_interval == 1 && $cal_repeat != 0))
-                            {
-                                    $units = ($row['cal_interval'] == 1) ? $user->lang['INTERVAL'][strtoupper($row['cal_interval_units'])] : $user->lang['INTERVAL'][strtoupper($row['cal_interval_units']) . 'S'];
-                                    $repeat = $row['cal_repeat'] ? $row['cal_repeat'] . 'x' : $user->lang['CAL_REPEAT_FOREVER'];
-                                    $event['message'] .= '<br /><b>' .  $user->lang['SEL_INTERVAL'] .  '</b> ' .  $row['cal_interval'] .  ' ' .  $units .  '<br /><b>' .  $user->lang['CALENDAR_REPEAT'] .  '</b> ' .  $repeat;
-                            }
-                    }
             $info = $event['message'];
             } 
             return $info;
@@ -344,22 +248,17 @@ class functions_topic_calendar
             }
 
             // set up defaults first in case we don't find any event information (such as a new post)
-            $cal_interval = 1;
-            $cal_interval_units = 'DAY';
-            $cal_repeat_always = '';
-
             // we only want to get the date if this is an edit fresh, and not preview
             $cal_date = request_var('cal_date', $user->lang['NO_DATE']);
-            $cal_date_end = request_var('cal_date_end', $user->lang['NO_DATE']);
             // okay we are starting an edit on the post, let's get the required info from the tables
-            if (($cal_date == $user->lang['NO_DATE'] || $cal_date_end == $user->lang['NO_DATE']) && $mode == 'edit')
+            if ($cal_date == $user->lang['NO_DATE'] && $mode == 'edit')
             {
                     // setup the format used for the form
                     $format = str_replace(array('m', 'd', 'y'), array('%m', '%d', '%Y'), strtolower($user->lang['DATE_INPUT_FORMAT']));
 
                     // grab the event info for this topic
-                    $sql = 'SELECT DATE_FORMAT(cal_date, "' . $format . '") as cal_date, cal_interval, cal_interval_units, cal_repeat ' .
-                                    'FROM ' . TOPIC_CALENDAR_TABLE . ' ' .
+                    $sql = 'SELECT DATE_FORMAT(cal_date, "' . $format . '") as cal_date ' .
+                                    'FROM ' . $topic_calendar_table . ' ' .
                                     'WHERE ' . $db->sql_build_array('SELECT', array(
                                             'topic_id' => (int)$topic_id
                                     ));
@@ -368,66 +267,14 @@ class functions_topic_calendar
                     $db->sql_freeresult($result);
                     if ($row)
                     {
-                            $cal_interval_units = $row['cal_interval_units'];
-                            $cal_interval = $row['cal_interval'];
                             $cal_date = $row['cal_date'];
-                            // only if the repeat is more than 1 day (meaning it actually repeats) do we get the end date
-                            // else it is just a single event
-                            if ($row['cal_repeat'] > 1)
-                            {
-                                    // have to pull a little tweak on WEEK since the interval doesn't exist in SQL
-                                    $units = $row['cal_interval_units'] == 'WEEK' ? '* 7 DAY' : $row['cal_interval_units'];
-
-                                    // we have to do another query here because SQL does not allow interval units to be a field variable
-                                    $sql2 = "SELECT DATE_FORMAT(cal_date + INTERVAL cal_interval * (cal_repeat - 1) $units, \"$format\") as cal_date_end " .
-                                                    'FROM ' . TOPIC_CALENDAR_TABLE . ' ' .
-                                                    'WHERE ' . $db->sql_build_array('SELECT', array(
-                                                            'topic_id' => (int)$topic_id
-                                                    ));
-                                    $result2 = $db->sql_query($sql2);
-                                    $row2 = $db->sql_fetchrow($result2);
-                                    $db->sql_freeresult($result2);
-                                    $cal_date_end = $row2['cal_date_end'];
-                            } else if ($row['cal_repeat'] == 1)
-                            {
-                                    $cal_interval = 1;
-                                    $cal_interval_units = 'DAY';
-                                    $cal_date_end = $user->lang['NO_DATE'];
-                            } else
-                            {
-                                    $cal_repeat_always = 'checked="checked"';
-                                    $cal_date_end = $user->lang['NO_DATE'];
-                            }
                     }
-            }
-
-            $interval_units = array(
-                    'DAY'   => pluralize($user->lang['INTERVAL']['DAY'], $user->lang['INTERVAL']['DAYS']),
-                    'WEEK'  => pluralize($user->lang['INTERVAL']['WEEK'], $user->lang['INTERVAL']['WEEKS']),
-                    'MONTH' => pluralize($user->lang['INTERVAL']['MONTH'], $user->lang['INTERVAL']['MONTHS']),
-                    'YEAR'  => pluralize($user->lang['INTERVAL']['YEAR'], $user->lang['INTERVAL']['YEARS']),
-            );
-            $interval_unit_options = '';
-            foreach($interval_units as $unit => $name)
-            {
-                    $interval_unit_options .= '<option value="' . $unit . '"';
-                    if ($cal_interval_units == $unit)
-                    {
-                            $interval_unit_options .= ' selected="selected"';
-                    }
-                    $interval_unit_options .= '>' . $name . '</option>';
             }
 
             $template->assign_vars(array(
                     'S_TOPIC_CALENDAR'				=> true,
                     'CAL_DATE'					=> $cal_date,
-                    'CAL_DATE_END'				=> $cal_date_end,
-                    'CAL_ADVANCED_FORM'			=> ($cal_date_end != $user->lang['NO_DATE'] || $cal_repeat_always) ? '' : 'none',
-                    'CAL_ADVANCED_FORM_ON'		=> ($cal_date_end != $user->lang['NO_DATE'] || $cal_repeat_always) ? 'checked="checked"' : '',
                     'CAL_NO_DATE'				=> $user->lang['NO_DATE'],
-                    'CAL_INTERVAL'				=> $cal_interval,
-                    'CAL_INTERVAL_UNIT_OPTIONS'	=> $interval_unit_options,
-                    'CAL_REPEAT_ALWAYS'			=> $cal_repeat_always,
             ));
             base_calendar();
     }

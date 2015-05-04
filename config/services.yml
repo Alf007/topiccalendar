@@ -13,6 +13,7 @@ services:
             - @user
             - %core.root_path%
             - %core.php_ext%
+            - %tables.topic_calendar%
     alf007.topiccalendar.listener:
         class:  alf007\topiccalendar\event\main_listener
         arguments:
@@ -34,3 +35,4 @@ services:
             - @template
             - @user
             - %core.root_path%
+            - %tables.topic_calendar%

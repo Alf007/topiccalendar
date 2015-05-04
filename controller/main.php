@@ -2,7 +2,7 @@
 /**
 *
 * @package phpBB Extension - Alf007 Topic Calendar
-* @copyright (c) 2013 phpBB Group
+* @copyright (c) 2015 Alf007
 * @license http://opensource.org/licenses/gpl-2.0.php GNU General Public License v2
 *
 */
@@ -34,7 +34,9 @@ class main
 
     /** @var string PHP extension */
     protected $phpEx;
-
+    
+    protected $topic_calendar_table;
+    
     /**
     * Constructor
     *
@@ -46,8 +48,9 @@ class main
     * @param \phpbb\user                        $user
     * @param string                             $root_path      phpbb root path
     * @param string                             $phpEx          php file extension
+    * @param string $ext_table  extension table name
     */
-    public function __construct(\phpbb\auth\auth $auth, \phpbb\config\config $config, \phpbb\db\driver\driver_interface $db, \phpbb\controller\helper $helper, \phpbb\template\template $template, \phpbb\user $user, $root_path, $phpEx)
+    public function __construct(\phpbb\auth\auth $auth, \phpbb\config\config $config, \phpbb\db\driver\driver_interface $db, \phpbb\controller\helper $helper, \phpbb\template\template $template, \phpbb\user $user, $root_path, $phpEx, $ext_table)
     {
         $this->auth = $auth;
         $this->config = $config;
@@ -57,6 +60,7 @@ class main
         $this->user = $user;
         $this->root_path = $root_path;
         $this->phpEx = $phpEx;
+        $this->topic_calendar_table = $ext_table;
     }
 
     /**
@@ -72,27 +76,22 @@ class main
         
         // Define the information for the current date
         list($today['year'], $today['month'], $today['day']) = explode('-', $this->user->format_date(time(), 'Y-m-d'));
-
+		// get the first day of the month
+       	$display_date = new \DateTime($today['year'] . '-' . $today['month'] . '-01');
         if ($month != 0 && $year != 0)
         {
-            $view_isodate = sprintf('%04d', $year) . '-' . sprintf('%02d', $month) . '-01 00:00:00';
-        } else
-        {   // get the first day of the month as an isodate
-            $view_isodate = $today['year'] . '-' . $today['month'] . '-01 00:00:00';
+        	$display_date->setDate($year, $month, 1);
         }
 
         // setup the current view information
-        $sql = "SELECT
-                    MONTHNAME('$view_isodate') as monthName,
-                    DATE_FORMAT('$view_isodate', '%m') as month,
-                    YEAR('$view_isodate') as year,
-                    DATE_FORMAT(CONCAT(YEAR('$view_isodate'), '-', MONTH('$view_isodate' + INTERVAL 1 MONTH), '-01') - INTERVAL 1 DAY, '%e') as numDays,
-                    WEEKDAY('$view_isodate') as offset";
-        $result = $this->db->sql_query($sql);
-        $monthView = $this->db->sql_fetchrow($result);
-        $this->db->sql_freeresult($result);
-        $monthView['monthName'] = $this->user->lang['datetime'][$monthView['monthName']];
-
+		$monthView = array(
+			'monthName'	=>	$this->user->lang['datetime'][$display_date->format('F')],
+			'month'	=>	$display_date->format('m'),
+			'year'	=>	$display_date->format('Y'),
+			'numDays'	=>	$display_date->format('t'),
+			'offset'	=>	$display_date->format('w'),
+		);
+		
         // [*] is this going to give us a negative number ever?? [*]
         if ($this->user->lang['WEEKDAY_START'] != 1)
         {
@@ -120,11 +119,11 @@ class main
         }
 
         // prepare images and links for month navigation
-        $url_prev_month = append_sid($this->root_path . $this_file, "month=$previousmonth&amp;year=$previousyear");
-        $url_next_month = append_sid($this->root_path . $this_file, "month=$nextmonth&amp;year=$nextyear");
+        $url_prev_month = $this->helper->route('alf007_topiccalendar_controller', array('month' => $previousmonth, 'year' => $previousyear));
+        $url_next_month = $this->helper->route('alf007_topiccalendar_controller', array('month' => $nextmonth, 'year' => $nextyear));
 
-        $url_prev_year = append_sid($this->root_path . $this_file, 'month=' . $monthView['month'] . '&amp;year=' . ($monthView['year'] - 1));
-        $url_next_year = append_sid($this->root_path . $this_file, 'month=' . $monthView['month'] . '&amp;year=' . ($monthView['year'] + 1));
+        $url_prev_year = $this->helper->route('alf007_topiccalendar_controller', array('month' => $monthView['month'], 'year' => $monthView['year'] - 1));
+        $url_next_year = $this->helper->route('alf007_topiccalendar_controller', array('month' => $monthView['month'], 'year' => $monthView['year'] + 1));
 
         //	Output Week days from first day of week
         $weekday = $this->user->lang['WEEKDAY_START']; 
@@ -237,9 +236,9 @@ class main
             );
             $current_isodate .= ' 00:00:00';
             $sql_array = array(
-                'SELECT'	=> "c.*, t.topic_title, pt.post_text, pt.bbcode_uid, pt.bbcode_bitfield, t.topic_views, t.topic_replies, f.forum_name, (cal_interval_units = 'DAY' && cal_interval = 1 && '$current_isodate' = INTERVAL (cal_interval * (cal_repeat - 1)) DAY + cal_date) as block_end",
+                'SELECT'	=> "c.*, t.topic_title, pt.post_text, pt.bbcode_uid, pt.bbcode_bitfield, t.topic_views, t.topic_replies, f.forum_name",
                 'FROM'		=> array(
-                    TOPIC_CALENDAR_TABLE	=> 'c',
+                    $topic_calendar_table	=> 'c',
                     TOPICS_TABLE		=> 't',
                     FORUMS_TABLE		=> 'f',
                     POSTS_TABLE			=> 'pt'
@@ -248,47 +247,8 @@ class main
                     AND c.topic_id = t.topic_id 
                     AND f.enable_events > 0 
                     AND pt.post_id = t.topic_first_post_id
-                    AND '$current_isodate' >= cal_date
-                    AND
-                    (
-                        cal_repeat = 0 
-                        OR
-                        (
-                            cal_repeat > 0 
-                            AND
-                            (
-                                (cal_interval_units = 'DAY' AND ('$current_isodate' <= INTERVAL (cal_interval * (cal_repeat - 1)) DAY + cal_date))
-                                OR (cal_interval_units = 'WEEK' AND ('$current_isodate' <= INTERVAL ((cal_interval * (cal_repeat - 1)) * 7) DAY + cal_date))
-                                OR (cal_interval_units = 'MONTH' AND ('$current_isodate' <= INTERVAL (cal_interval * (cal_repeat - 1)) MONTH + cal_date))
-                                OR (cal_interval_units = 'YEAR' AND ('$current_isodate' <= INTERVAL (cal_interval * (cal_repeat - 1)) YEAR + cal_date))
-                            )
-                        )
-                    )
-                    AND
-                    (
-                        (
-                            cal_interval_units = 'DAY' 
-                            AND (TO_DAYS('$current_isodate') - TO_DAYS(cal_date)) % cal_interval = 0
-                        ) 
-                        OR
-                        (
-                            cal_interval_units = 'WEEK' 
-                            AND (TO_DAYS('$current_isodate') - TO_DAYS(cal_date)) % (7 * cal_interval) = 0
-                        )
-                        OR
-                        (
-                            cal_interval_units = 'MONTH' 
-                            AND DAYOFMONTH(cal_date) = DAYOFMONTH('$current_isodate') 
-                            AND PERIOD_DIFF(DATE_FORMAT('$current_isodate', '%Y%m'), DATE_FORMAT(cal_date, '%Y%m')) % cal_interval = 0
-                        )
-                        OR 
-                        (
-                            cal_interval_units = 'YEAR' 
-                            AND DATE_FORMAT(cal_date, '%m%d') = DATE_FORMAT('$current_isodate', '%m%d') 
-                            AND (YEAR('$current_isodate') - YEAR(cal_date)) % cal_interval = 0
-                        )
-                    )",
-                'ORDER_BY'	=> 'cal_interval_units ASC, cal_date ASC, cal_repeat DESC'
+                    AND '$current_isodate' >= cal_date",
+                'ORDER_BY'	=> 'cal_date ASC'
             );
             $sql = $this->db->sql_build_query('SELECT', $sql_array);
             $this->db->sql_return_on_error(true);
@@ -332,11 +292,6 @@ class main
                     // prepare the popup text, escaping quotes for javascript
                     $title_text = '<b>' . $this->user->lang['TOPIC'] . ':</b> ' . $topic['topic_title'] . '<br /><b>' . $this->user->lang['FORUM'] . ':</b> <i>' . $topic['forum_name'] . '</i><br /><b>' . $this->user->lang['VIEWS'] . ':</b> ' . $topic['topic_views'] . '<br /><b>' . $this->user->lang['REPLIES'] . ':</b> ' . $topic['topic_replies'];
 
-                    // tack on the interval and repeat if this is a repeated event
-                    if ($topic['cal_repeat'] != 1)
-                    {
-                        $title_text .= '<br /><b>' . $this->user->lang['SEL_INTERVAL'] . ':</b> ' . $topic['cal_interval'] . ' ' . (($topic['cal_interval'] == 1) ? $this->user->lang['INTERVAL'][strtoupper($topic['cal_interval_units'])] : $this->user->lang['INTERVAL'][strtoupper($topic['cal_interval_units']) . 'S']). '<br /><b>' . $this->user->lang['CALENDAR_REPEAT'] . ':</b> ' . ($topic['cal_repeat'] ? $topic['cal_repeat'] . 'x' : 'always');
-                    }
                     $title_text .= '<br />' . bbcode_nl2br($post_text);
                     $title_text = str_replace('\'', '\\\'', htmlspecialchars($title_text));
 
@@ -348,73 +303,17 @@ class main
                     );
                 }
 
-                // if we have a block event running (interval = 1 day) with this topic ID, then output our line
-                if (isset($eventStack[$topic_id]))
-                {
-                    $first_date = '';
-                    if ($topic['block_end'])
-                    {
-                        $block = 2;
-                    } else
-                    {
-                        $block = 1;
-                    }
-                    // we have to determine if we are in the right row...which is the value
-                    // in the eventStack array
-                    $offset = $eventStack[$topic_id] - $numEvents;
+                $topic_text = strlen($topic['topic_title']) > 148 ? substr($topic['topic_title'], 0, 147) . '...' : $topic['topic_title'];
 
-                    // if this block was running in a position other than the first, we need
-                    // to correct the offset so the line keeps running along the same axis..
-                    // even though the upper block has stopped.We are going to get a 
-                    // cascading effect from this until all overlapping block events stop
-                    if ($offset > 0)
-                    {
-                        foreach (range(1, $offset) as $offsetCount)
-                        {
-                            $this->template->assign_block_vars('day_infos.date_event', array(
-                                    'U_EVENT' => '<br />',
-                                    'DAY_BLOCK_BEGIN' => false,
-                                    'DAY_BLOCK_END' => false,
-                                    'U_EVENT_END' => '', 
-                                )
-                            );
-                        }
-                    }
-                    $topic_text = '';
-                } else
-                {	// this is either a single day event or the start of a new block event
-                    $first_date = ' ';
-                    $topic_text = strlen($topic['topic_title']) > 148 ? substr($topic['topic_title'], 0, 147) . '...' : $topic['topic_title'];
-                    $block = 0;
-                }
                 $event = isset($topicCache[$topic_id]['first_post']) ? $topicCache[$topic_id]['first_post'] : '';
                 $link = $can_read ? '<a href="' . $topicCache[$topic_id]['topic_url'] . "\">" : '<i>'; 
                 $this->template->assign_block_vars('day_infos.date_event', array(
                         'POPUP'				=> $event,
-                        'U_EVENT'			=> $first_date . $link . $topic_text,
-                        'DAY_BLOCK_BEGIN'	=> ($block == 1),
-                        'DAY_BLOCK_END'		=> ($block == 2),
+                        'U_EVENT'			=> $link . $topic_text,
                         'U_EVENT_END'		=> $can_read ? '</a>' : '</i>', 
                     )
                 );
                 $numEvents++;
-
-                // Here I use a stack of sorts to keep track of block events which are
-                // still running...I sort the block start dates by date, so the overlaps
-                // will always appear in the same order...if a block ends while a lower block
-                // continues, I keep a place holder so that the line continues along the same path
-
-                // we are at the end of a block event
-                if ($topic['block_end'])
-                {
-                    unset($eventStack[$topic_id]);
-                }
-                // we place an entry in the event stack, key as the topic, value as the row
-                // number the event should fall in, for visual block events (interval = 1 day)
-                else if (!isset($eventStack[$topic_id]) && $topic['cal_interval_units'] == 'DAY' && $topic['cal_interval'] == 1)
-                {
-                    $eventStack[$topic_id] = empty($eventStack) ? 0 : sizeof($eventStack);
-                }
             }	//	while ($this->db->sql_fetchrow($result))
         }	// for ($day <= $monthView['numDays'])
 
@@ -423,8 +322,8 @@ class main
             $this->template->assign_var('END_DAY_LINK', true);
         }
 
-        $this->template->assign_var('S_IN_TOPIC_CALENDAR3', true);
+        $this->template->assign_var('S_IN_TOPIC_CALENDAR', true);
 
-        return $this->helper->render('topiccalendar_body.html');
+        return $this->helper->render('topic_calendar_body.html');
     }
 }

@@ -18,7 +18,7 @@ if (empty($lang) || !is_array($lang))
 }
 
 $lang = array_merge($lang, array(
-    'CALENDAR'		=> 'Calendar',
-    'CALENDAR_EXPLAIN'	=> 'Calendar details',
-    'VIEWING_CALENDAR'	=> 'Viewing the Calendar'
+    'TOPIC_CALENDAR'		=> 'Calendar',
+    'TOPIC_CALENDAR_EXPLAIN'	=> 'Calendar details',
+    'VIEWING_TOPIC_CALENDAR'	=> 'Viewing the Calendar'
 ));

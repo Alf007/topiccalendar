@@ -134,7 +134,7 @@ class main_listener implements EventSubscriberInterface
     public function add_page_header_after($event)
     {
         $this->template->assign_vars(array(
-            'U_TOPIC_CALENDAR_PAGE'	=> $this->helper->route('alf007_topiccalendar_controller'),
+            'U_TOPIC_CALENDAR'	=> $this->helper->route('alf007_topiccalendar_controller'),
         ));
         if ($this->user->data['is_registered'])
         {
@@ -167,9 +167,7 @@ class main_listener implements EventSubscriberInterface
         if (!$event['update'] && $event['action'] == 'add')
         {
             $forum_data_ext = $event['forum_data'];
-            $forum_data_ext[] = array (
-                'enable_events'     => false,
-            );
+            $forum_data_ext['enable_events'] = false;
             $event['forum_data'] = $forum_data_ext;
         }
     }
@@ -185,9 +183,7 @@ class main_listener implements EventSubscriberInterface
     public function request_forums_data($event)
     {
         $forum_data_ext = $event['forum_data'];
-        $forum_data_ext[] = array (
-            'enable_events'     => $event['action'] == 'edit' ? $this->request->variable('enable_events', false) : false,
-        );
+        $forum_data_ext['enable_events'] = $event['action'] == 'edit' ? $this->request->variable('enable_events', false) : false;
         $event['forum_data'] = $forum_data_ext;
     }
     
@@ -213,9 +209,7 @@ class main_listener implements EventSubscriberInterface
     public function display_forums_form($event)
     {
         $template_data_ext = $event['template_data'];
-        $template_data_ext[] = array (
-            'S_EVENTS'      => ($forum_data['enable_events']) ? true : false,
-        );
+        $template_data_ext['TC_EVENTS'] = $event['forum_data']['enable_events'] ? true : false;
         $event['template_data'] = $template_data_ext;
     }
     
@@ -267,7 +261,7 @@ class main_listener implements EventSubscriberInterface
     */
     public function move_topics($event)
     {
-        include('functions_topiccalendar' . $this->phpEx);
+        include('functions_topic_calendar' . $this->phpEx);
         $this->topiccal->move_event($event['forum_id'], $event['topic_ids']);
     }
     

@@ -1,7 +1,7 @@
 <!-- INCLUDE overall_header.html -->
 <br style="clear:both" />
 <div class="forabg">
-	<div class="inner"><span class="corners-top"><span></span></span>
+	<div class="inner"><span class="corners-top"><span> </span></span>
 		<ul class="topiclist">
 			<li class="header"><strong>{L_CALENDAR}</strong></li>
 		</ul>
@@ -21,7 +21,7 @@
 				</ul>
 				<ul class="days">
 					<!-- BEGIN before_first_day -->
-					<li class="notaday" />
+					<li class="notaday"> </li>
 					<!-- END before_first_day -->
 					<!-- IF START_DAY_LINK -->
 					<li class="notaday"><a href="{U_PREV_MONTH}" title="{L_PREVIOUS_MONTH}"><img src="{T_IMAGESET_PATH}/icon_left_arrow.gif" alt="{L_PREVIOUS_MONTH}" /></a></li>
@@ -33,10 +33,8 @@
 							<li><div class="event" onmouseover="domTT_activate(event, 'content', '{day_infos.date_event.POPUP}');">{day_infos.date_event.U_EVENT}
 								<!-- IF day_infos.date_event.DAY_BLOCK_BEGIN -->
 								<div class="bar"><img src="{T_IMAGESET_PATH}/event_block_arrow.gif" alt="-&gt;" /></div>
-								<!-- ELSEIF day_infos.date_event.DAY_BLOCK_END -->
-								<div class="bar"><img src="{T_IMAGESET_PATH}/event_block_end.gif" alt="-]" /></div>
 								<!-- ENDIF -->
-								{day_infos.date_event.U_EVENT_END}</div>
+								</div>
 							</li>
 						<!-- END date_event -->
 						<!-- BEGIN date_birthday -->
@@ -51,7 +49,7 @@
 				</ul>
 			</form></div>
 		</div></li></ul>
-	<span class="corners-bottom"><span></span></span></div>
+	<span class="corners-bottom"><span> </span></span></div>
 </div>
 
 <br style="clear:both" />
