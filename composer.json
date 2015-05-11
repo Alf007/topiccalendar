@@ -3,34 +3,38 @@
     "type": "phpbb-extension",
     "description": "Topic Calendar Extension for phpBB 3.1, conversion from MyCalendar",
     "homepage": "https://github.com/Alf007/topiccalendar",
-    "version": "1.0.0-b1",
-    "time": "2014-11-08",
+    "version": "1.0.0-dev",
+    "time": "2015-05-11",
+    "keywords": ["calendar", "topic", "event"],
     "license": "GPL-2.0",
+    "require": {
+        "php": ">=5.3.3",
+        "composer/installers": "~1.0"
+    },
     "authors": [
         {
             "name": "Alf007",
-            "email": "alf007@free.fr",
             "homepage": "http://alf007.free.fr/",
             "role": "Developper"
         },
         {
             "name": "mojavelinux",
-            "email": "dan@mojavelinux.com",
             "homepage": "http://www.mojavelinux.com/projects/mycalendar/",
             "role": "Previous developper"
         }
     ],
-    "require": {
-        "php": ">=5.3.3",
-        "composer/installers": "~1.0"
-    },
     "require-dev": {
         "phpbb/epv": "dev-master"
     },
     "extra": {
         "display-name": "Topic Calendar",
         "soft-require": {
-            "phpbb/phpbb": ">=3.1.1"
-        }
+            "phpbb/phpbb": ">=3.1.4,<3.2.*@dev"
+        },
+        "version-check": {
+			"host": "alf007.github.io",
+			"directory": "/topiccalendar",
+			"filename": "topiccalendar.json"
+		}
     }
 }

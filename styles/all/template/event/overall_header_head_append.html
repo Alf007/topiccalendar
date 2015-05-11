@@ -1,7 +1,9 @@
-<!-- IF S_IN_TOPIC_CALENDAR -->
-<!-- INCLUDECSS ../theme/topic_calendar.css -->
-<!-- ELSEIF S_IN_MINI_CAL -->
-<!-- INCLUDECSS ../theme/mini_cal.css -->
-<!-- ELSE -->
-<!-- INCLUDECSS ../theme/posting_cal.css -->
-<!-- ENDIF -->
+{% if S_IN_TOPIC_CALENDAR %}
+	<!-- INCLUDECSS @alf007_topiccalendar/topiccalendar.css -->
+{% elseif S_IN_MINI_CAL %}
+	<!-- INCLUDECSS @alf007_topiccalendar/mini_cal.css -->
+{% else %}
+	<!-- INCLUDECSS @alf007_topiccalendar/posting_cal.css -->
+{% endif %}
+<!-- INCLUDECSS @alf007_topiccalendar/imageset.css -->
+<!-- INCLUDECSS @alf007_topiccalendar/jquery-ui.min.css -->

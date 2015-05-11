@@ -1,18 +1,18 @@
 <!-- INCLUDE overall_header.html -->
 <br style="clear:both" />
 <div class="forabg">
-	<div class="inner"><span class="corners-top"><span> </span></span>
+	<div class="inner calendar">
 		<ul class="topiclist">
 			<li class="header"><strong>{L_CALENDAR}</strong></li>
 		</ul>
-		<ul class="topiclist forums"><li><div class="calendar">
-			<div><form>
+		<ul class="topiclist topics">
+			<li><dl><dt><form>
 				<ul class="monthyear forums">
-					<li class="previous"><a href="{U_PREV_YEAR}" title="{L_PREVIOUS_YEAR}"><img src="{T_IMAGESET_PATH}/icon_double_left_arrow.gif" alt="{L_PREVIOUS_YEAR}" /></a></li>
-					<li class="previous"><a href="{U_PREV_MONTH}" title="{L_PREVIOUS_MONTH}"><img src="{T_IMAGESET_PATH}/icon_left_arrow.gif" alt="{L_PREVIOUS_MONTH}" /></a></li>
+					<li class="previous"><a class="icon_double_left_arrow" href="{U_PREV_YEAR}" title="{L_PREVIOUS_YEAR}"></a></li>
+					<li class="previous"><a class="icon_left_arrow" href="{U_PREV_MONTH}" title="{L_PREVIOUS_MONTH}"></a></li>
 					<li>{S_MONTH_YEAR}</li>
-					<li class="next"><a href="{U_NEXT_MONTH}" title="{L_NEXT_MONTH}"><img src="{T_IMAGESET_PATH}/icon_right_arrow.gif" alt="{L_NEXT_MONTH}" /></a></li>
-					<li class="next"><a href="{U_NEXT_YEAR}" title="{L_NEXT_YEAR}"><img src="{T_IMAGESET_PATH}/icon_double_right_arrow.gif" alt="{L_NEXT_YEAR}" /></a></li>
+					<li class="next"><a class="icon_right_arrow" href="{U_NEXT_MONTH}" title="{L_NEXT_MONTH}"></a></li>
+					<li class="next"><a class="icon_double_right_arrow" href="{U_NEXT_YEAR}" title="{L_NEXT_YEAR}"></a></li>
 				</ul>
 				<ul class="dayheaders">
 					<!-- BEGIN weekdays -->
@@ -24,15 +24,15 @@
 					<li class="notaday"> </li>
 					<!-- END before_first_day -->
 					<!-- IF START_DAY_LINK -->
-					<li class="notaday"><a href="{U_PREV_MONTH}" title="{L_PREVIOUS_MONTH}"><img src="{T_IMAGESET_PATH}/icon_left_arrow.gif" alt="{L_PREVIOUS_MONTH}" /></a></li>
+					<li class="notaday"><a class="icon_left_arrow" href="{U_PREV_MONTH}" title="{L_PREVIOUS_MONTH}"></a></li>
 					<!-- ENDIF -->
 					<!-- BEGIN day_infos -->
 					<li class="{day_infos.DAY_CLASS} row day"><div class="bg3">{day_infos.DAY_INFO}</div>
 						<ul class="event">
 						<!-- BEGIN date_event -->
-							<li><div class="event" onmouseover="domTT_activate(event, 'content', '{day_infos.date_event.POPUP}');">{day_infos.date_event.U_EVENT}
+							<li><div class="event" data="event, 'content', '{day_infos.date_event.POPUP}';">{day_infos.date_event.U_EVENT}
 								<!-- IF day_infos.date_event.DAY_BLOCK_BEGIN -->
-								<div class="bar"><img src="{T_IMAGESET_PATH}/event_block_arrow.gif" alt="-&gt;" /></div>
+								<div class="bar event_block_arrow" alt="-&gt;"></div>
 								<!-- ENDIF -->
 								</div>
 							</li>
@@ -44,11 +44,11 @@
 					</li>
 					<!-- END day_infos -->
 					<!-- IF END_DAY_LINK -->
-					<li class="notaday"><a href="{U_NEXT_MONTH}" title="{L_NEXT_MONTH}"><img src="{T_IMAGESET_PATH}/icon_right_arrow.gif" alt="{L_NEXT_MONTH}" /></a></li>
+					<li class="notaday"><a class="icon_right_arrow" href="{U_NEXT_MONTH}" title="{L_NEXT_MONTH}"></a></li>
 					<!-- ENDIF -->
 				</ul>
-			</form></div>
-		</div></li></ul>
+			</form></dt></dl></li>
+		</ul>
 	<span class="corners-bottom"><span> </span></span></div>
 </div>
 

@@ -7,16 +7,22 @@
 *
 */
 
-namespace alf007\topiccalendar\core;
+namespace alf007\topiccalendar\controller;
+
+use alf007\topiccalendar\includes\functions_topic_calendar;
 
 class mini_calendar
 {
+	
     /** @var \phpbb\auth\auth */
     protected $auth;
 
     /** @var \phpbb\db\driver\driver_interface */
     protected $db;
 
+    /* @var \phpbb\controller\helper */
+    protected $helper;
+    
     /** @var \phpbb\request\request_interface */
     protected $request;
 
@@ -29,29 +35,38 @@ class mini_calendar
     /** @var string phpBB root path */
     protected $root_path;
 
+    /** @var string PHP extension */
+    protected $phpEx;
+    
     /**
     * Constructor
     *
     * @param \phpbb\auth\auth                   $auth
     * @param \phpbb\db\driver\driver_interface  $db
+    * @param \phpbb\controller\helper           $helper
     * @param \phpbb\request\request_interface   $request        Request variables
     * @param \phpbb\template\template           $this->template->
     * @param \phpbb\user                        $user
     * @param string                         root_path           phpbb root path
+    * @param string                         phpEx           PHP file extension
     */
-    public function __construct(\phpbb\auth\auth $auth, \phpbb\db\driver\driver_interface $db, \phpbb\request\request_interface $request, \phpbb\template\template $template, \phpbb\user $user, $root_path)
+    public function __construct(\phpbb\auth\auth $auth, \phpbb\db\driver\driver_interface $db, \phpbb\controller\helper $helper, \phpbb\request\request_interface $request, \phpbb\template\template $template, \phpbb\user $user, $root_path, $phpEx)
     {
         $this->auth = $auth;
         $this->db = $db;
+        $this->helper = $helper;
         $this->request = $request;
         $this->template = $template;
         $this->user = $user;
         $this->root_path = $root_path;
+		$this->phpEx = $phpEx;
     }
     
-    public function display_mini_calendar()
+    public function display_mini_calendar($topic_calendar_table)
     {
         $this->user->add_lang_ext('alf007/topiccalendar', 'controller');
+
+		define('DATE_FORMAT', 'Y-m-d H:i:s');
 
         // Limits the number of events shown on the mini cal
         define('MINI_CAL_LIMIT', 5);
@@ -122,7 +137,6 @@ class mini_calendar
         $dateMM = (int)date("n", $stamp);
         $ext_dateMM = date("F", $stamp);
         $daysMonth = (int)date("t", $stamp);
-        $monthStart = (int)date("w", $stamp);
 
         $mini_cal_count = (int)$this->user->lang['WEEKDAY_START'];
         $mini_cal_this_year = $dateYYYY;
@@ -191,29 +205,8 @@ class mini_calendar
         }
 
         // Check for birthdays
-        $birthdays = array();
-        $sql = 'SELECT *
-                    FROM ' . USERS_TABLE . "
-                    WHERE user_birthday NOT LIKE '%- 0-%'
-                        AND user_birthday NOT LIKE '0-%'
-                        AND	user_birthday NOT LIKE '0- 0-%'
-                        AND	user_birthday NOT LIKE ''
-                        AND user_type IN (" . USER_NORMAL . ', ' . USER_FOUNDER . ')';
-        $result = $this->db->sql_query($sql);
-        while ($row = $this->db->sql_fetchrow($result))
-        {
-            $birthdays[] = array(
-                            'username'		=> $row['username'], 
-                            'check_date'	=> $monthView['year'] . '-' . sprintf('%02d', substr($row['user_birthday'], 3, 2)) . '-' . sprintf('%02d', substr($row['user_birthday'], 0, 2)), 
-                            'birthday' 		=> $row['user_birthday'], 
-                            'id'		=> $row['user_id'], 
-                            'show_age'		=> (isset($row['user_show_age'])) ? $row['user_show_age'] : 0, 
-                            'colour'		=> $row['user_colour']
-                        );
-        }
-        $this->db->sql_freeresult($result);
-        sort($birthdays);
-
+        $birthdays = functions_topic_calendar::getbirthdays($this->db, $monthView['year']); 
+        
         // output the days for the current month 
         // if MINI_CAL_DATE_SEARCH = POSTS then hyperlink any days which have already past
         // if MINI_CAL_DATE_SEARCH = EVENTS then hyperkink any which have events
@@ -257,9 +250,8 @@ class mini_calendar
                             AND c.topic_id = t.topic_id
                             $mini_cal_auth_sql
                             AND f.enable_events > 0 
-                            AND '$current_isodate' >= cal_date
-                            )",
-                        'ORDER_BY'	=> 'cal_date ASC'
+                            AND '$current_isodate' = c.cal_date",
+                        'ORDER_BY'	=> 'c.cal_date ASC'
                 );
                 $sql = $this->db->sql_build_query('SELECT', $sql_array);
                 $result = $this->db->sql_query($sql);
@@ -283,7 +275,7 @@ class mini_calendar
                     }
                     if ($row['cal_read'] == '1')
                     {
-                        $mini_cal_day = '<a href="' . append_sid("{$this->root_path}search.$phpEx", "search_id=mini_cal_events&amp;d=" . $d_mini_cal_today) . '" alt="' . $title . '" title="' . $title . '">' . ( $mini_cal_day ) . '</a>';
+                        $mini_cal_day = '<a href="' . append_sid("{$this->root_path}search.$this->phpEx", "search_id=mini_cal_events&amp;d=" . $d_mini_cal_today) . '" alt="' . $title . '" title="' . $title . '">' . ( $mini_cal_day ) . '</a>';
                     } else
                     {
                         $mini_cal_day = '<abbr title="' . $title . '">' . ( $mini_cal_day ) . '</abbr></a>';
@@ -299,10 +291,10 @@ class mini_calendar
                 $nix_mini_cal_today = mktime(0, 0, 0, $mini_cal_this_month, $mini_cal_this_day, $mini_cal_this_year);
                 if ($title != '')
                 {
-                    $mini_cal_day = ( $mini_cal_today >= $d_mini_cal_today ) ? '<a href="' . append_sid("{$this->root_path}search.$phpEx", "search_id=mini_cal&amp;d=" . $nix_mini_cal_today) . '" alt="' . $title . '" title="' . $title . '">' . ( $mini_cal_day ) . '</a>' : '<abbr title="' . $title . '">' . ( $mini_cal_day ) . '</abbr></a>';
+                    $mini_cal_day = ( $mini_cal_today >= $d_mini_cal_today ) ? '<a href="' . append_sid("{$this->root_path}search.$this->phpEx", "search_id=mini_cal&amp;d=" . $nix_mini_cal_today) . '" alt="' . $title . '" title="' . $title . '">' . ( $mini_cal_day ) . '</a>' : '<abbr title="' . $title . '">' . ( $mini_cal_day ) . '</abbr></a>';
                 } else
                 {
-                    $mini_cal_day = ( $mini_cal_today >= $d_mini_cal_today ) ? '<a href="' . append_sid("{$this->root_path}search.$phpEx", "search_id=mini_cal&amp;d=" . $nix_mini_cal_today) . '">' . ( $mini_cal_day ) . '</a>' : $mini_cal_day;
+                    $mini_cal_day = ( $mini_cal_today >= $d_mini_cal_today ) ? '<a href="' . append_sid("{$this->root_path}search.$this->phpEx", "search_id=mini_cal&amp;d=" . $nix_mini_cal_today) . '">' . ( $mini_cal_day ) . '</a>' : $mini_cal_day;
                 }
             }
             if ($mini_cal_today == $d_mini_cal_today)
@@ -323,25 +315,26 @@ class mini_calendar
         }
 
         // initialise some sql bits
-        $days_ahead_sql = (MINI_CAL_DAYS_AHEAD > 0) ? " AND (c.cal_date <= " . $display_date_ahead->format('Y-m-d H:i:s') . ") " : '';
+        $days_ahead_sql = (MINI_CAL_DAYS_AHEAD > 0) ? " AND (c.cal_date <= " . $display_date_ahead->format(DATE_FORMAT) . ") " : '';
 
-        // get the events 
+        // get the events
+        $now = date(DATE_FORMAT);
         $sql_array = array(
-                'SELECT'	=> 'c.topic_id, c.cal_date, c.forum_id, MONTH(c.cal_date) as cal_month, DAYOFWEEK(c.cal_date) as cal_weekday, DAYOFMONTH(c.cal_date) as cal_monthday, YEAR(c.cal_date) as cal_year, HOUR(c.cal_date) as cal_hour, MINUTE(c.cal_date) as cal_min, SECOND(c.cal_date) as cal_sec, t.topic_title' . $mini_cal_auth_read_sql,
+                'SELECT'	=> 'c.topic_id, c.cal_date, c.forum_id, c.cal_date, t.topic_title' . $mini_cal_auth_read_sql,
                 'FROM'		=> array( 
                     $topic_calendar_table	=> 'c',
                     TOPICS_TABLE		=> 't',
                     FORUMS_TABLE		=> 'f'
                 ),
-                'WHERE'		=> 'c.forum_id = f.forum_id 
+                'WHERE'		=> "c.forum_id = f.forum_id 
                     AND c.topic_id = t.topic_id 
-                    AND (c.cal_date >= CURDATE())' . $days_ahead_sql . $mini_cal_auth_sql,
+                    AND (c.cal_date >= '" . $now . "')" . $days_ahead_sql . $mini_cal_auth_sql,
                 'ORDER_BY'	=> 'c.cal_date ASC'
         );
         $sql = $this->db->sql_build_query('SELECT', $sql_array);
-        $this->db->sql_return_on_error(true);
+        //$this->db->sql_return_on_error(true);
         $result = $this->db->sql_query_limit($sql, MINI_CAL_LIMIT);
-        $this->db->sql_return_on_error(false);
+        //$this->db->sql_return_on_error(false);
         // did we get a result? 
         // if not then the user does not have Topic Calendar installed
         // so just die quielty don't bother to output an error message
@@ -358,22 +351,23 @@ class mini_calendar
             $prev_cal_multi = 0;
             while ($row = $this->db->sql_fetchrow($result))
             {
+            	$eventdate = \DateTime::createFromFormat(DATE_FORMAT, $row['cal_date']);
                 $cal_date_replace = array( 
-                    $this->user->lang['MINICAL']['DAY']['SHORT'][$row['cal_weekday'] - 1], 
-                    $this->user->lang['MINICAL']['MONTH']['SHORT'][$row['cal_month'] - 1], 
-                    $row['cal_month'], 
-                    ((strlen($row['cal_monthday']) < 2) ? '0' : '') . $row['cal_monthday'], 
-                    $row['cal_monthday'], 
-                    ((strlen($row['cal_month']) < 2) ? '0' : '') . $row['cal_month'], 
-                    substr($row['cal_year'], -2),
-                    $row['cal_year'],
-                    ((strlen($row['cal_hour']) < 2) ? '0' : '') . $row['cal_hour'],
-                    $row['cal_hour'],
-                    ((strlen($row['cal_hour']) < 2) ? '0' : '') . (($row['cal_hour'] > 12) ? $row['cal_hour'] - 12 : $row['cal_hour']),
-                    ($row['cal_hour'] > 12) ? $row['cal_hour'] - 12 : $row['cal_hour'],
-                    $row['cal_min'],
-                    $row['cal_sec'],
-                    ($row['cal_hour'] < 12) ? 'AM' : 'PM'
+                    $this->user->lang['MINICAL']['DAY']['SHORT'][(int)$eventdate->format('w') - 1], 
+                    $this->user->lang['MINICAL']['MONTH']['SHORT'][(int)$eventdate->format('m') - 1], 
+                    $eventdate->format('m'), 
+                    $eventdate->format('d'), 
+                    $eventdate->format('d'), 
+                    $eventdate->format('m'), 
+                    $eventdate->format('y'),
+                    $eventdate->format('Y'),
+                    $eventdate->format('H'),
+                    $eventdate->format('G'),
+                    $eventdate->format('h'),
+                    $eventdate->format('g'),
+                    $eventdate->format('i'),
+                    $eventdate->format('s'),
+                    $eventdate->format('A')
                 );
                 $cal_date = preg_replace($cal_date_pattern, $cal_date_replace, $this->user->lang['Mini_Cal_date_format']);
                 if ($prev_cal_date != '' && $prev_cal_date != $cal_date)
@@ -391,7 +385,7 @@ class mini_calendar
                 $prev_cal_date = $cal_date;
                 $prev_cal_id = preg_replace($cal_date_pattern, $cal_date_replace, '%Y%m%d');
                 $prev_cal_text = $row['topic_title'];
-                $prev_cal_url = append_sid("{$this->root_path}viewtopic.$phpEx", "t={$row['topic_id']}");
+                $prev_cal_url = append_sid("{$this->root_path}viewtopic.$this->phpEx", "t={$row['topic_id']}");
                 $see_url = (array_key_exists('cal_read', $row) && $row['cal_read'] == '1');
                 if ($prev_cal_urltext != '')
                 {
@@ -430,12 +424,31 @@ class mini_calendar
         }
 
         // output our general calendar bits
-        $prev_month = append_sid("{$this->root_path}index.$phpEx", 'month=' . ($month - 1));
-        $next_month = append_sid("{$this->root_path}index.$phpEx", 'month=' . ($month + 1));
+        if ($month == 12)
+        {
+            $nextmonth = 1;
+            $nextyear = $year + 1; 
+        } else
+        {
+            $nextmonth = $month + 1;
+            $nextyear = $year;
+        }
+
+        if ($month == 1)
+        {
+            $previousmonth = 12;
+            $previousyear = $year - 1;
+        } else
+        {
+            $previousmonth = $month - 1; 
+            $previousyear = $year;
+        }
+        $url_prev_month = $this->helper->route('alf007_topiccalendar_controller', array('month' => $previousmonth, 'year' => $previousyear));
+        $url_next_month = $this->helper->route('alf007_topiccalendar_controller', array('month' => $nextmonth, 'year' => $nextyear));
         $this->template->assign_vars(array(
                 'U_MINI_CAL_CALENDAR' => $this->helper->route('alf007_topiccalendar_controller'),
-                'U_PREV_MONTH' => $prev_month,
-                'U_NEXT_MONTH' => $next_month,
+                'U_PREV_MONTH' => $url_prev_month,
+                'U_NEXT_MONTH' => $url_next_month,
                 )
         );
     }

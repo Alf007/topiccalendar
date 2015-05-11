@@ -8,31 +8,35 @@ services:
             - @auth
             - @config
             - @dbal.conn
+            - @content.visibility
             - @controller.helper
             - @template
             - @user
             - %core.root_path%
             - %core.php_ext%
             - %tables.topic_calendar%
-    alf007.topiccalendar.listener:
-        class:  alf007\topiccalendar\event\main_listener
-        arguments:
-            - @dbal.conn
-            - @controller.helper
-            - @request
-            - @template
-            - @user
-            - %core.php_ext%
-            - %tables.topic_calendar%
-        tags:
-            - { name: event.listener }
-    alf007.topiccalendar.core:
-        class: alf007\topiccalendar\core\mini_calendar
+    alf007.topiccalendar.minical:
+        class: alf007\topiccalendar\controller\mini_calendar
         arguments:
             - @auth
             - @dbal.conn
+            - @controller.helper
             - @request
             - @template
             - @user
             - %core.root_path%
+            - %core.php_ext%
+    alf007.topiccalendar.listener:
+        class:  alf007\topiccalendar\event\main_listener
+        arguments:
+            - @config
+            - @dbal.conn
+            - @controller.helper
+            - @request
+            - @template
+            - @user
+            - %core.php_ext%
             - %tables.topic_calendar%
+            - @alf007.topiccalendar.minical
+        tags:
+            - { name: event.listener }

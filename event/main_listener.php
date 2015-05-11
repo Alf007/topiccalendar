@@ -30,6 +30,7 @@ class main_listener implements EventSubscriberInterface
             'core.acp_manage_forums_display_form'       => 'display_forums_form',
             'core.acp_manage_forums_move_content'       => 'move_forums_content',
             'core.acp_manage_forums_delete_content'     => 'delete_forums_content',
+        	'core.index_modify_page_title'				=> 'display_mini_calendar',
             'core.move_topics'                          => 'move_topics',
             'core.delete_posts_after'                   => 'delete_posts',
             'core.delete_topics'                        => 'delete_topics',
@@ -40,6 +41,9 @@ class main_listener implements EventSubscriberInterface
         );
     }
 
+    /* @var \phpbb\config\config */
+    protected $config;
+    
     /** @var \phpbb\db\driver\driver_interface */
     protected $db;
 
@@ -60,11 +64,14 @@ class main_listener implements EventSubscriberInterface
 
     protected $topic_calendar_table;
 
-    public $topiccal;
+    protected $mini_calendar;
+    
+    public $functions_topiccal;
     
     /**
     * Constructor
     *
+    * @param \phpbb\config\config               $config
     * @param \phpbb\db\driver\driver_interface  $db
     * @param \phpbb\controller\helper	$helper		Controller helper object
     * @param \phpbb\request\request_interface   $request        Request variables
@@ -72,10 +79,12 @@ class main_listener implements EventSubscriberInterface
     * @param \phpbb\user                        $user
     * @param string $phpEx      php file extension
     * @param string $ext_table  extension table name
+    * @param \alf007\topiccalendar\controller\mini_calendar
     * @access public
     */
-    public function __construct(\phpbb\db\driver\driver_interface $db, \phpbb\controller\helper $helper, \phpbb\request\request_interface $request, \phpbb\template\template $template, \phpbb\user $user, $phpEx, $ext_table)
+    public function __construct(\phpbb\config\config $config, \phpbb\db\driver\driver_interface $db, \phpbb\controller\helper $helper, \phpbb\request\request_interface $request, \phpbb\template\template $template, \phpbb\user $user, $phpEx, $ext_table, \alf007\topiccalendar\controller\mini_calendar $mini_cal)
     {
+    	$this->config = $config;
         $this->db = $db;
         $this->helper = $helper;
         $this->request = $request;
@@ -83,7 +92,8 @@ class main_listener implements EventSubscriberInterface
         $this->user = $user;
         $this->phpEx = $phpEx;
         $this->topic_calendar_table = $ext_table;
-        $this->topiccal = new functions_topic_calendar;
+        $this->mini_calendar = $mini_cal;
+        $this->functions_topiccal = new functions_topic_calendar($config, $db, $user, $template, $ext_table);
     }
 
     /**
@@ -142,7 +152,7 @@ class main_listener implements EventSubscriberInterface
             $forum_id = $this->request->variable('f', 0);
             $topic_id = $this->request->variable('t', 0);
             $post_id = $this->request->variable('p', 0);
-            $this->topiccal->generate_entry($mode, $forum_id, $topic_id, $post_id, $this->template);
+            $this->functions_topiccal->generate_entry($mode, $forum_id, $topic_id, $post_id);
         }
 
     }
@@ -251,6 +261,11 @@ class main_listener implements EventSubscriberInterface
         $this->db->sql_query("DELETE FROM $this->topic_calendar_table WHERE forum_id = $forum_id");
     }
     
+    public function display_mini_calendar($event)
+    {
+    	$this->mini_calendar->display_mini_calendar($this->topic_calendar_table);	
+    }
+    
     /**
     * Event after topics are moved to another forum
     *
@@ -261,8 +276,7 @@ class main_listener implements EventSubscriberInterface
     */
     public function move_topics($event)
     {
-        include('functions_topic_calendar' . $this->phpEx);
-        $this->topiccal->move_event($event['forum_id'], $event['topic_ids']);
+        $this->functions_topiccal->move_event($event['forum_id'], $event['topic_ids']);
     }
     
     /**
@@ -294,7 +308,7 @@ class main_listener implements EventSubscriberInterface
     */
     public function delete_topics($event)
     {
-        $this->db->sql_query("DELETE FROM $this->topic_calendar_table WHERE " . $db->sql_in_set('topic_id', $event['topic_ids']));
+        $this->db->sql_query("DELETE FROM $this->topic_calendar_table WHERE " . $this->db->sql_in_set('topic_id', $event['topic_ids']));
     }
     
     /**
@@ -337,7 +351,7 @@ class main_listener implements EventSubscriberInterface
     {
         $topic_row = $event['topic_row'];
         $topic_row[] = array (
-            'EVENT' => $this->topiccal->show_event($topic_row['topic_id'], 0)
+            'EVENT' => $this->functions_topiccal->show_event($topic_row['topic_id'], 0)
         );
         $event['topic_row'] = $topic_row;
     }
@@ -358,7 +372,7 @@ class main_listener implements EventSubscriberInterface
     {
         if ($event['on_page'][1] == 'calendar')
         {
-            $event['location'] = $this->user->lang['VIEWING_CALENDAR'];
+            $event['location'] = $this->user->lang['VIEWING_TOPIC_CALENDAR'];
             $event['location_url'] = append_sid("{$this->root_path}topic_calendar.$this->phpEx");
         }
     }
@@ -387,7 +401,7 @@ class main_listener implements EventSubscriberInterface
     {
         $post_row = $event['post_row'];
         $post_row[] = array (
-            'EVENT'         => $this->topiccal->show_event($topic_id, $post_row['row'][$post_row['topic_data']['post_id']]),
+            'EVENT'         => $this->functions_topiccal->show_event($this->user, $this->topic_calendar_table, $event['topic_data']['topic_id'], $event['row']['post_id']),
         );
         $event['post_row'] = $post_row;
     }

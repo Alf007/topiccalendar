@@ -13,7 +13,7 @@ class release_1_0_0 extends \phpbb\db\migration\migration
 {
 	public function effectively_installed()
 	{
-		return $this->db_tools->sql_column_exists($this->table_prefix . 'forums', 'enable_events');
+		return $this->db_tools->sql_table_exists($this->table_prefix . 'topic_calendar');
 	}
 
 	static public function depends_on()
@@ -80,15 +80,15 @@ class release_1_0_0 extends \phpbb\db\migration\migration
 		{
 			$sql = 'SELECT * FROM ' . $this->table_prefix . 'mycalendar';
 			$result = $this->sql_query($sql);
-			while ($row = $this->sql_fetchrow($result))
+			while ($row = $this->db->sql_fetchrow($result))
 			{
-				$date = $row['cal_date']->format('Y-m-d H:i:s');
+				$date = date('Y-m-d H:i:s', strtotime($row['cal_date']));
 				if ($date == FALSE)
 					$date = '0000-00-00 00:00:00';
-				$sql = 'INSERT INTO ' . $this->table_prefix . 'topic_calendar ' . $db->sql_build_array('INSERT', array(
-							'topic_id'  => $row('topic_id'),
+				$sql = 'INSERT INTO ' . $this->table_prefix . 'topic_calendar ' . $this->db->sql_build_array('INSERT', array(
+							'topic_id'  => $row['topic_id'],
 							'cal_date'  => $date, 
-							'forum_id'  => $row('forum_id')
+							'forum_id'  => $row['forum_id']
 						));
 				$this->sql_query($sql);
 			}

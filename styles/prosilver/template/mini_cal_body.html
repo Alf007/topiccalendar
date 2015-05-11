@@ -21,66 +21,62 @@
 </script>
 	
 <div class="forabg">
-	<div class="inner">
-		<span class="corners-top"><span> </span></span>
-		<div id="calendar">
-			<div class="calendar">
-				<ul class="topiclist">
-					<li class="header"><dl><dt>
-						<a href="{U_MINI_CAL_CALENDAR}" class="none">{L_MINI_CAL_CALENDAR}</a>
-					</dt></dl></li>
-				</ul>
-				<div><form>
-					<ul class="monthyear forums">
-						<li class="previous"><a href="{U_PREV_MONTH}" title="{L_PREVIOUS_MONTH}"><img src="{T_THEME_PATH}/images/arrow_left.gif" alt="{L_PREVIOUS_MONTH}" /></a></li>
-						<li>{S_MONTH_YEAR}</li>
-						<li class="next"><a href="{U_NEXT_MONTH}" title="{L_NEXT_MONTH}"><img src="{T_THEME_PATH}/images/arrow_right.gif" alt="{L_NEXT_MONTH}" /></a></li>
-					</ul>
-					<ul class="dayheaders">
-						<!-- BEGIN day_headers -->
-						<li class="bg1"><abbr title="{day_headers.DAY_LONG}">{day_headers.DAY_SHORT}</abbr></li>
-						<!-- END day_headers -->
-					</ul>
-					<ul class="days">
-						<!-- BEGIN before_first_day -->
-						<li class="notaday"> </li>
-						<!-- END before_first_day -->
-						<!-- IF START_DAY_LINK -->
-						<li class="notaday"><a href="{U_PREV_MONTH}" title="{L_PREVIOUS_MONTH}"><img src="{T_THEME_PATH}/images/arrow_left.gif" alt="{L_PREVIOUS_MONTH}" /></a></li>
-						<!-- ENDIF -->
-						<!-- BEGIN day_infos -->
-						<li class="{day_infos.DAY_CLASS} row day" {day_infos.DAY_OMO}>{day_infos.DAY_INFO}</li>
-						<!-- END day_infos -->
-						<!-- IF END_DAY_LINK -->
-						<li class="notaday"><a href="{U_NEXT_MONTH}" title="{L_NEXT_MONTH}"><img src="{T_THEME_PATH}/images/arrow_right.gif" alt="{L_NEXT_MONTH}" /></a></li>
-						<!-- ENDIF -->
-					</ul>
-				</form></div>
-			</div>
-			<div id="events">
-				<ul class="topiclist">
-					<li class="header"><dl><dt>
-						<!-- IF HAS_EVENTS -->
-						{L_MINI_CAL_EVENTS}
-						<!-- ELSE -->
-						{L_MINI_CAL_NO_EVENTS}
-						<!-- ENDIF -->
-					</dt></dl></li>
-				</ul>
+	<div class="inner calendar">
+		<ul class="topiclist">
+			<li class="header">
+				<dl>
+					<dt><div><a id="calendar" href="{U_MINI_CAL_CALENDAR}" class="none">{L_MINI_CAL_CALENDAR}</a></div></dt>
+				</dl>
+			</li>
+		</ul>
+		<ul class="topiclist topics"><li><dl><dt><form>
+			<ul class="monthyear forums">
+				<li class="previous"><a class="arrow-left" href="{U_PREV_MONTH}" title="{L_PREVIOUS_MONTH}"></a></li>
+				<li>{S_MONTH_YEAR}</li>
+				<li class="next"><a class="arrow-right" href="{U_NEXT_MONTH}" title="{L_NEXT_MONTH}"></a></li>
+			</ul>
+			<ul class="dayheaders">
+				<!-- BEGIN day_headers -->
+				<li class="bg1"><abbr title="{day_headers.DAY_LONG}">{day_headers.DAY_SHORT}</abbr></li>
+				<!-- END day_headers -->
+			</ul>
+			<ul class="days">
+				<!-- BEGIN before_first_day -->
+				<li class="notaday"> </li>
+				<!-- END before_first_day -->
+				<!-- IF START_DAY_LINK -->
+				<li class="notaday"><a href="{U_PREV_MONTH}" title="{L_PREVIOUS_MONTH}"><img src="{T_THEME_PATH}/images/arrow_left.gif" alt="{L_PREVIOUS_MONTH}" /></a></li>
+				<!-- ENDIF -->
+				<!-- BEGIN day_infos -->
+				<li class="{day_infos.DAY_CLASS} row day" {day_infos.DAY_OMO}>{day_infos.DAY_INFO}</li>
+				<!-- END day_infos -->
+				<!-- IF END_DAY_LINK -->
+				<li class="notaday"><a href="{U_NEXT_MONTH}" title="{L_NEXT_MONTH}"><img src="{T_THEME_PATH}/images/arrow_right.gif" alt="{L_NEXT_MONTH}" /></a></li>
+				<!-- ENDIF -->
+			</ul>
+		</form></dt></dl></li></ul>
+		<div id="events">
+			<ul class="topiclist topics">
+				<li class="header"><dl><dt>
+					<!-- IF HAS_EVENTS -->
+					{L_MINI_CAL_EVENTS}
+					<!-- ELSE -->
+					{L_MINI_CAL_NO_EVENTS}
+					<!-- ENDIF -->
+				</dt></dl></li>
 				<!-- IF HAS_EVENTS -->
-				<div>
-					<ul class="events">
+				<li>
+					<ul class="events forums">
 						<!-- BEGIN events -->
-						<li class="{events.EVENT_CLASS} row navbar" id="{events.EVENT_ID}"><table><tr>
-							<td class="date">{events.EVENT_DATE}</td>
-							<td>{events.EVENT_URLTEXT}</td>
-						</tr></table></li>
+						<li class="{events.EVENT_CLASS} row" id="{events.EVENT_ID}"><dl><dt>
+							<table><tr><td class="date">{events.EVENT_DATE}</td>
+							<td>{events.EVENT_URLTEXT}</td></tr></table>
+						</dt></dl></li>
 						<!-- END events -->
 					</ul>
-				</div>
+				</li>
 				<!-- ENDIF -->
-			</div>
+			</ul>
 		</div>
-		<span class="corners-bottom"><span></span></span>
 	</div>
 </div>

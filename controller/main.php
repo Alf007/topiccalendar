@@ -9,6 +9,8 @@
 
 namespace alf007\topiccalendar\controller;
 
+use alf007\topiccalendar\includes\functions_topic_calendar;
+
 class main
 {
     /** @var \phpbb\auth\auth */
@@ -19,7 +21,10 @@ class main
 
     /** @var \phpbb\db\driver\driver_interface */
     protected $db;
-
+    
+    /** @var \phpbb\content_visibility */
+    protected $content_visibility;
+    
     /* @var \phpbb\controller\helper */
     protected $helper;
 
@@ -50,11 +55,12 @@ class main
     * @param string                             $phpEx          php file extension
     * @param string $ext_table  extension table name
     */
-    public function __construct(\phpbb\auth\auth $auth, \phpbb\config\config $config, \phpbb\db\driver\driver_interface $db, \phpbb\controller\helper $helper, \phpbb\template\template $template, \phpbb\user $user, $root_path, $phpEx, $ext_table)
+    public function __construct(\phpbb\auth\auth $auth, \phpbb\config\config $config, \phpbb\db\driver\driver_interface $db, \phpbb\content_visibility $content_visibility, \phpbb\controller\helper $helper, \phpbb\template\template $template, \phpbb\user $user, $root_path, $phpEx, $ext_table)
     {
         $this->auth = $auth;
         $this->config = $config;
         $this->db = $db;
+		$this->content_visibility = $content_visibility;
         $this->helper = $helper;
         $this->template = $template;
         $this->user = $user;
@@ -73,8 +79,8 @@ class main
     public function handle($month = 0, $year = 0)
     {
         $this->user->add_lang_ext('alf007/topiccalendar', 'controller');
-        
-        // Define the information for the current date
+    	
+    	// Define the information for the current date
         list($today['year'], $today['month'], $today['day']) = explode('-', $this->user->format_date(time(), 'Y-m-d'));
 		// get the first day of the month
        	$display_date = new \DateTime($today['year'] . '-' . $today['month'] . '-01');
@@ -160,27 +166,7 @@ class main
         }
 
         // Check for birthdays
-        $ucbirthdayrow = array();
-        $sql = 'SELECT *
-                    FROM ' . USERS_TABLE . "
-                    WHERE user_birthday NOT LIKE '%- 0-%'
-                        AND user_birthday NOT LIKE '0-%'
-                        AND	user_birthday NOT LIKE '0- 0-%'
-                        AND	user_birthday NOT LIKE ''
-                        AND user_type IN (" . USER_NORMAL . ', ' . USER_FOUNDER . ')';
-        $result = $this->db->sql_query($sql);
-        while ($row = $this->db->sql_fetchrow($result))
-        {
-            $ucbirthdayrow[] = array(
-                'username'	=> $row['username'], 
-                'check_date'	=> $monthView['year'] . '-' . sprintf('%02d', substr($row['user_birthday'], 3, 2)) . '-' . sprintf('%02d', substr($row['user_birthday'], 0, 2)), 
-                'birthday'	=> $row['user_birthday'], 
-                'id'		=> $row['user_id'], 
-                'show_age'	=> (isset($row['user_show_age'])) ? $row['user_show_age'] : 0, 
-                'colour'	=> $row['user_colour']);
-        }
-        $this->db->sql_freeresult($result);
-        sort($ucbirthdayrow);
+        $ucbirthdayrow = functions_topic_calendar::getbirthdays($this->db, $monthView['year']); 
 
         // prepare the loops for running through the calendar for the current month
         $eventStack = array();
@@ -236,9 +222,9 @@ class main
             );
             $current_isodate .= ' 00:00:00';
             $sql_array = array(
-                'SELECT'	=> "c.*, t.topic_title, pt.post_text, pt.bbcode_uid, pt.bbcode_bitfield, t.topic_views, t.topic_replies, f.forum_name",
+                'SELECT'	=> "c.*, t.*, pt.post_text, pt.bbcode_uid, pt.bbcode_bitfield, f.forum_name",
                 'FROM'		=> array(
-                    $topic_calendar_table	=> 'c',
+                    $this->topic_calendar_table	=> 'c',
                     TOPICS_TABLE		=> 't',
                     FORUMS_TABLE		=> 'f',
                     POSTS_TABLE			=> 'pt'
@@ -247,7 +233,7 @@ class main
                     AND c.topic_id = t.topic_id 
                     AND f.enable_events > 0 
                     AND pt.post_id = t.topic_first_post_id
-                    AND '$current_isodate' >= cal_date",
+                    AND '$current_isodate' = cal_date",
                 'ORDER_BY'	=> 'cal_date ASC'
             );
             $sql = $this->db->sql_build_query('SELECT', $sql_array);
@@ -256,15 +242,15 @@ class main
             $this->db->sql_return_on_error(false);
             if (!$result)
             {
-                trigger_error('TOPIC_CALENDAR_CantQueryDate');
+                trigger_error(implode(', ', $this->db->get_sql_error_returned()) . '<br/>' . implode(', ', $sql_array));//'TOPIC_CALENDAR_CantQueryDate');
             }
 
             $numEvents = 0;
             while ($topic = $this->db->sql_fetchrow($result))
             {
                 $forum_id = $topic['forum_id'];
-                $can_view = $auth->acl_get('f_list', $forum_id);
-                $can_read = $can_view && $auth->acl_get('f_read', $forum_id); 
+                $can_view = $this->auth->acl_get('f_list', $forum_id);
+                $can_read = $can_view && $this->auth->acl_get('f_read', $forum_id); 
                 $topic_id = $topic['topic_id'];
 
                 // prepare the first post text if it has not already been cached
@@ -279,18 +265,16 @@ class main
                     }
                     if ($topic['bbcode_bitfield'])
                     {
-                        if (!class_exists('bbcode'))
-                        {
-                            include($this->root_path . 'includes/bbcode.' . $this->phpEx);
-                        }
-                        $bbcode = new bbcode($topic['bbcode_bitfield']);
-                        $bbcode->bbcode_second_pass($post_text, $topic['bbcode_uid'], $topic['bbcode_bitfield']);
+						$parse_flags = ($topic['bbcode_bitfield'] ? OPTION_FLAG_BBCODE : 0);
+						$post_text = generate_text_for_display($post_text, $topic['bbcode_uid'], $topic['bbcode_bitfield'], $parse_flags, true);
                     }
                     $post_text = bbcode_nl2br($post_text);
                     $post_text = smiley_text($post_text);
 
+                    $replies = $this->content_visibility->get_count('topic_posts', $topic, $forum_id) - 1;
+                    
                     // prepare the popup text, escaping quotes for javascript
-                    $title_text = '<b>' . $this->user->lang['TOPIC'] . ':</b> ' . $topic['topic_title'] . '<br /><b>' . $this->user->lang['FORUM'] . ':</b> <i>' . $topic['forum_name'] . '</i><br /><b>' . $this->user->lang['VIEWS'] . ':</b> ' . $topic['topic_views'] . '<br /><b>' . $this->user->lang['REPLIES'] . ':</b> ' . $topic['topic_replies'];
+                    $title_text = '<b>' . $this->user->lang['TOPIC'] . ':</b> ' . $topic['topic_title'] . '<br /><b>' . $this->user->lang['FORUM'] . ':</b> <i>' . $topic['forum_name'] . '</i><br /><b>' . $this->user->lang['VIEWS'] . ':</b> ' . $topic['topic_views'] . '<br /><b>' . $this->user->lang['REPLIES'] . ':</b> ' . $replies;
 
                     $title_text .= '<br />' . bbcode_nl2br($post_text);
                     $title_text = str_replace('\'', '\\\'', htmlspecialchars($title_text));
