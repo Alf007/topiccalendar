@@ -1,0 +1,10 @@
+{ 
+	"unstable": { 
+		"1.0": { 
+			"current": "1.0.0-dev", 
+			"announcement": "https://github.com/Alf007/topiccalendar", 
+			"eol": null, 
+			"security": false 
+		}               
+	} 
+} 
