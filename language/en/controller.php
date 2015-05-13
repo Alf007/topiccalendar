@@ -33,8 +33,22 @@ $lang = array_merge($lang, array(
 	'DATE_SQL_FORMAT'	=> '%M %e, %Y',		// This should be changed to the default date format for SQL for your language
 	'DATE_INPUT_FORMAT'	=> 'm/d/y',			// Requires 'd', 'm', and 'y' and a punctuation delimiter, order can change
 
+	'INTERVAL'			=> array(
+		'0'		=> 'day',
+		'0S'	=> 'days',
+		'1'		=> 'week',
+		'1S'	=> 'weeks',
+		'2'		=> 'month',
+		'2S'	=> 'months',
+		'3'		=> 'year',
+		'3S'	=> 'years',
+	),
+		
 	'WEEKDAY_START'			=> 1,		// First Day of the Week - 0=Sunday, 1=Monday...6=Saturday
 	'EVENT_START'			=> 'Start Date',
+	'EVENT_END'				=> 'End Date and Interval',
+	'CALENDAR_ADVANCED'		=> 'advanced',
+	'CAL_REPEAT_FOREVER'	=> 'repeat forever',
 	'CLEAR_DATE'			=> 'Clear Date',
 	'NO_DATE'				=> 'None',
 	'SELECT_START_DATE'		=> 'Please Select a Start Date', // must escape ' as \\\' for javascript
@@ -43,18 +57,13 @@ $lang = array_merge($lang, array(
 	'NEXT_MONTH'			=> 'View Next Month',
 	'PREVIOUS_YEAR'			=> 'View Previous Year',
 	'NEXT_YEAR'				=> 'View Next Year',
+	'SEL_INTERVAL'			=> 'Interval:',
+	'CALENDAR_REPEAT'		=> 'Repeat:',
 	'DATE_SELECTOR_TITLE'	=> 'Date Selector',
 	'HAPPY'					=> 'Happy Birthday(s): ',
 	'EVENT'					=> 'Event(s): ',
 
-	//	Error messages
-	'TOPIC_CALENDAR_CantQueryDate'				=> 'Error querying dates for calendar.',
-	'TOPIC_CALENDAR_NoRepeatMult'				=> 'Could not determine repeat multiplier for date entry.',
-	'TOPIC_CALENDAR_CantCheckDate'				=> 'Failure when looking up date entry for topic.',
-
 	//	Mini cal
-	'MINI_CAL_CALENDAR'		=> 'Calendar',
-	'MINI_CAL_ADD_EVENT'	=> 'Add Event',
 	'MINI_CAL_EVENTS'		=> 'Upcoming Events',
 	'MINI_CAL_NO_EVENTS'	=> 'No Upcoming Event',
 // uses MySQL DATE_FORMAT - %c  long_month, numeric (1..12) - %e  Day of the long_month, numeric (0..31)

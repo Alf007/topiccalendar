@@ -18,5 +18,6 @@ if (empty($lang) || !is_array($lang))
 }
 
 $lang = array_merge($lang, array(
-    'ENABLE_EVENTS'	=> 'Autoriser les évènements de Calendrier'
+    'ENABLE_EVENTS'	=> 'Autoriser les évènements de Calendrier',
+    'ENABLE_EVENTS_EXPLAIN'	=> 'Si positioné à vrai les utilisateurs peuvent définir un évènement associé à un (premier message de) sujet pour ce forum'
 ));

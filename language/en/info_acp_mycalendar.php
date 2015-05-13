@@ -18,5 +18,6 @@ if (empty($lang) || !is_array($lang))
 }
 
 $lang = array_merge($lang, array(
-    'ENABLE_EVENTS'	=> 'Enable Events for Topic Calendar'
+    'ENABLE_EVENTS'	=> 'Enable Events for Topic Calendar',
+    'ENABLE_EVENTS_EXPLAIN'	=> 'If set to yes users are able to define event associated with topic (first post) for this forum'
 ));

@@ -1,91 +1,33 @@
-<!-- INCLUDEJS @alf007_topiccalendar/js/topic_calendar.js -->
 <script type="text/javascript">
 // <![CDATA[
-
-var calendarFormat = '{CAL_DATE_FORMAT}';
-var calendarMonths = new Array({CAL_MONTH_LIST});
-var calendarWeekdaysShort = new Array({CAL_WEEKDAY_SHORT_LIST});
-var calendarWeekdays = new Array({CAL_WEEKDAY_LIST});
-var previous_month = '{L_PREVIOUS_MONTH}';
-var next_month = '{L_NEXT_MONTH}';
-var image_previous = '{T_THEME_PATH}/images/arrow_left.gif';
-var image_next = '{T_THEME_PATH}/images/arrow_right.gif';
-var weekday_start = {L_WEEKDAY_START};
-
-var insert_id = 'date_picker';
-
-var today = new Date();
-var day = today.getDate();
-var month = today.getMonth();
-var year  = y2k(today.getYear());
-
-var currentDay = day;
-var currentMonth = month;
-var currentYear = year;
-
-var targetDateField;
-
-function select_date(formField)
-{
-	// get the reference to the target element and setup the date
-	targetDateField = formField;
-	var dateString = targetDateField.value;
-
-	if (dateString != '')
-	{
-		// convert the user format of the date into something we can parse to make a javascript Date object
-		// we need to pad with placeholders to get the rigth offset
-		tmp_format = calendarFormat.replace(/m/i, 'mm').replace(/d/i, 'dd').replace(/y/i, 'yyyy');
-		tmp_yOffset = tmp_format.indexOf('y');
-		tmp_mOffset = tmp_format.indexOf('m');
-		tmp_dOffset = tmp_format.indexOf('d');
-		var today = new Date(dateString.substring(tmp_yOffset, tmp_yOffset + 4), dateString.substring(tmp_mOffset, tmp_mOffset + 2) - 1, dateString.substring(tmp_dOffset, tmp_dOffset + 2));
-		if ((today == "Invalid Date") || (isNaN(today)))
-		{
-   			var today = new Date();
-		}
-	} else
-	{
-		var today = new Date();
-	}
-	day = today.getDate();
-	month = today.getMonth();
-	year  = y2k(today.getYear());
-	fill_div(insert_id, build_calendar(month, day, year));
-	fill_calendar(month, year);
-	document.getElementById(insert_id).style.display = 'block';
-}
-
-function fill_calendar(month, year)
-{
-	for (i = 1; i <= calendarDays[month]; i++)
-	{
-		fill_day(i, '<a href="javascript: void(0);" onclick="sendDate(' + (month + 1) + ', ' + i + ', ' + year + ');" title="' + formatDate(month + 1, i, year) + '">' + i + '</a>');
-	}	
-}
-
-function sendDate(month, day, year) 
-{
-	targetDateField.value = formatDate(month, day, year);
-	var dest = document.getElementById(insert_id);
-	dest.style.display = 'none';
-}
-
+$(function() {
+    $( "#datepicker" ).datepicker();
+  });
 // ]]>
 </script>
 
 <div class="panel bg3" id="topic-calendar-panel">
-	<div class="inner"><span class="corners-top"><span> </span></span>
-
+	<div class="inner">
 	<fieldset class="fields2">
 		<dl>
 			<dt><label for="cal_date">{L_EVENT_START}:</label></dt>
-			<dd><input type="text" class="inputbox autowidth" id="cal_date" name="cal_date" size="10" maxlength="10" onFocus="this.blur();" value="{CAL_DATE}" title="{L_EVENT_START}" /> <a href="javascript: void(0);" onClick="select_date(document.forms[form_name].cal_date);" title="{L_DATE_SELECTOR_TITLE}"><img src="images/topic_calendar.gif" border="0" alt="{L_DATE_SELECTOR_TITLE}" /></a> <input type="button" class="button2" onClick="this.form.cal_date.value = '{CAL_NO_DATE}';" value="{L_CLEAR_DATE}" /></dd>
+			<dd><input type="text" id="datepicker" class="inputbox autowidth small-icon topic-calendar" name="cal_date" size="10" maxlength="10" onFocus="this.blur();" value="{CAL_DATE}" title="{L_EVENT_START}" />
+			 <a href="javascript: void(0);" onClick="select_date(document.forms[form_name].cal_date);" title="{L_DATE_SELECTOR_TITLE}"></a>
+			 <input type="button" class="button2" onClick="this.form.cal_date.value = '{CAL_NO_DATE}';" value="{L_CLEAR_DATE}" /></dd>
+		</dl>
+		<dl id="cal_form_advanced" style="display: {CAL_ADVANCED_FORM};">
+			<dt><label for="cal_date_end">{L_EVENT_END}:</label></dt>
+			<dd><input type="text" id="datepicker" class="inputbox autowidth small-icon topic-calendar" name="cal_date_end" size="10" maxlength="10" onFocus="this.blur();" value="{CAL_DATE_END}" title="{L_EVENT_END}" />
+			 <a href="javascript: void(0);" onClick="if (document.forms[form_name].cal_date.value == '{CAL_NO_DATE}') { alert('{L_SELECT_START_DATE}'); } select_date(document.forms[form_name].cal_date_end);" title="{L_DATE_SELECTOR_TITLE}"></a>
+			 <input type="button" class="button2" onClick="this.form.cal_date_end.value = '{CAL_NO_DATE}';" value="{L_CLEAR_DATE}" />
+			</dd>
+			<dd><input type="text" class="inputbox autowidth" name="cal_interval" value="{CAL_INTERVAL}" size="3" />
+			 <select class="select autowidth" name="cal_interval_units" title="{L_SEL_INTERVAL}">{CAL_INTERVAL_UNIT_OPTIONS}</select>
+			 <input type="checkbox" name="cal_repeat_always" value="1" onClick="if (this.checked) { this.form.cal_date_end.value = '{CAL_NO_DATE}' }" {CAL_REPEAT_ALWAYS}/> {L_CAL_REPEAT_FOREVER}
+			</dd>
 		</dl>
 	</fieldset>
-
 	<div id="date_picker" style="display: none;">
 	</div>
-
-	<span class="corners-bottom"><span> </span></span></div>
+	</div>
 </div>

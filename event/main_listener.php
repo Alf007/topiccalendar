@@ -30,14 +30,13 @@ class main_listener implements EventSubscriberInterface
             'core.acp_manage_forums_display_form'       => 'display_forums_form',
             'core.acp_manage_forums_move_content'       => 'move_forums_content',
             'core.acp_manage_forums_delete_content'     => 'delete_forums_content',
-        	'core.index_modify_page_title'				=> 'display_mini_calendar',
             'core.move_topics'                          => 'move_topics',
             'core.delete_posts_after'                   => 'delete_posts',
             'core.delete_topics'                        => 'delete_topics',
             'core.posting_modify_submit_post_after'     => 'submit_post_after',
             'core.viewforum_modify_topicrow'            => 'modify_topicrow',
-            'core.viewonline_overwrite_location'        => 'overwrite_location',
             'core.viewtopic_modify_post_row'            => 'modify_post_row',
+        	'core.index_modify_page_title'				=> 'display_mini_calendar',
         );
     }
 
@@ -62,11 +61,13 @@ class main_listener implements EventSubscriberInterface
     /** @var string PHP extension */
     protected $phpEx;
 
-    protected $topic_calendar_table;
-
-    protected $mini_calendar;
+    protected $topic_calendar_table_config;
+    protected $topic_calendar_table_events;
     
-    public $functions_topiccal;
+	/* @var \alf007\topiccalendar\controller\main */
+	protected $tc_functions;
+    
+	public $functions_topiccal;
     
     /**
     * Constructor
@@ -78,11 +79,11 @@ class main_listener implements EventSubscriberInterface
     * @param \phpbb\template			$template	Template object
     * @param \phpbb\user                        $user
     * @param string $phpEx      php file extension
-    * @param string $ext_table  extension table name
-    * @param \alf007\topiccalendar\controller\mini_calendar
+    * @param string $table_config  extension config table name
+    * @param string $table_events  extension events table name
     * @access public
     */
-    public function __construct(\phpbb\config\config $config, \phpbb\db\driver\driver_interface $db, \phpbb\controller\helper $helper, \phpbb\request\request_interface $request, \phpbb\template\template $template, \phpbb\user $user, $phpEx, $ext_table, \alf007\topiccalendar\controller\mini_calendar $mini_cal)
+    public function __construct(\phpbb\config\config $config, \phpbb\db\driver\driver_interface $db, \phpbb\controller\helper $helper, \phpbb\request\request_interface $request, \phpbb\template\template $template, \phpbb\user $user, $phpEx, $table_config, $table_events, \alf007\topiccalendar\controller\main $tc_functions)
     {
     	$this->config = $config;
         $this->db = $db;
@@ -91,9 +92,10 @@ class main_listener implements EventSubscriberInterface
         $this->template = $template;
         $this->user = $user;
         $this->phpEx = $phpEx;
-        $this->topic_calendar_table = $ext_table;
-        $this->mini_calendar = $mini_cal;
-        $this->functions_topiccal = new functions_topic_calendar($config, $db, $user, $template, $ext_table);
+        $this->topic_calendar_table_config = $table_config;
+        $this->topic_calendar_table_events = $table_events;
+        $this->tc_functions = $tc_functions;
+        $this->functions_topiccal = new functions_topic_calendar($config, $db, $request, $template, $user, $table_config, $table_events);
     }
 
     /**
@@ -152,7 +154,8 @@ class main_listener implements EventSubscriberInterface
             $forum_id = $this->request->variable('f', 0);
             $topic_id = $this->request->variable('t', 0);
             $post_id = $this->request->variable('p', 0);
-            $this->functions_topiccal->generate_entry($mode, $forum_id, $topic_id, $post_id);
+    		$date = $this->request->variable('date', $user->lang['NO_DATE']);
+            $this->functions_topiccal->generate_entry($mode, $forum_id, $topic_id, $post_id, $date);
         }
 
     }
@@ -239,7 +242,7 @@ class main_listener implements EventSubscriberInterface
     {
         $from_id = $event['from_id'];
         $to_id = $event['to_id'];
-        $sql = "UPDATE $this->topic_calendar_table
+        $sql = "UPDATE $this->topic_calendar_table_events
             SET forum_id = $to_id
             WHERE forum_id = $from_id";
         $this->db->sql_query($sql);
@@ -258,12 +261,7 @@ class main_listener implements EventSubscriberInterface
     public function delete_forums_content($event)
     {
         $forum_id = $event['forum_id'];
-        $this->db->sql_query("DELETE FROM $this->topic_calendar_table WHERE forum_id = $forum_id");
-    }
-    
-    public function display_mini_calendar($event)
-    {
-    	$this->mini_calendar->display_mini_calendar($this->topic_calendar_table);	
+        $this->db->sql_query("DELETE FROM $this->topic_calendar_table_events WHERE forum_id = $forum_id");
     }
     
     /**
@@ -294,7 +292,7 @@ class main_listener implements EventSubscriberInterface
     */
     public function delete_posts($event)
     {
-        $sql = "DELETE FROM $this->topic_calendar_table
+        $sql = "DELETE FROM $this->topic_calendar_table_events
                 WHERE " . $this->db->sql_in_set('topic_id', $event['post_ids']);
         $this->db->sql_query($sql);
     }
@@ -308,7 +306,7 @@ class main_listener implements EventSubscriberInterface
     */
     public function delete_topics($event)
     {
-        $this->db->sql_query("DELETE FROM $this->topic_calendar_table WHERE " . $this->db->sql_in_set('topic_id', $event['topic_ids']));
+        $this->db->sql_query("DELETE FROM $this->topic_calendar_table_events WHERE " . $this->db->sql_in_set('topic_id', $event['topic_ids']));
     }
     
     /**
@@ -336,7 +334,27 @@ class main_listener implements EventSubscriberInterface
     public function submit_post_after($event)
     {
         $data = $event['data'];
-        mycal_submit_event($event['mode'], $event['forum_id'], $data['topic_id'], $event['post_id']);
+    	$date = $this->request->variable('date', $user->lang['NO_DATE']);
+		$repeat = 1;
+		// get the ending date and interval information
+		$interval_date = $this->request->variable('interval_date', false);
+		$date_end = $this->request->variable('date_end', $user->lang['NO_DATE']);
+		$repeat_always = $this->request->variable('repeat_always', false);
+		$interval = $this->request->variable('interval', 1);
+		$interval_units = $this->request->variable('interval_units', 0);
+        $this->functions_topiccal->submit_event(
+        		$event['mode'],
+        		$event['forum_id'],
+        		$data['topic_id'],
+        		$event['post_id'],
+        		$date,
+        		$repeat,
+        		$interval_date,
+				$date_end,
+				$repeat_always,
+				$interval,
+				$interval_units
+        );
     }
     
     /**
@@ -354,27 +372,6 @@ class main_listener implements EventSubscriberInterface
             'EVENT' => $this->functions_topiccal->show_event($topic_row['topic_id'], 0)
         );
         $event['topic_row'] = $topic_row;
-    }
-    
-    /**
-    * Overwrite the location's name and URL, which are displayed in the list
-    *
-    * @event core.viewonline_overwrite_location
-    * @var	array	on_page			File name and query string
-    * @var	array	row				Array with the users sql row
-    * @var	string	location		Page name to displayed in the list
-    * @var	string	location_url	Page url to displayed in the list
-    * @var	array	forum_data		Array with forum data
-    * @since 3.1.0-a1
-    * @change 3.1.0-a2 Added var forum_data
-    */
-    public function overwrite_location($event)
-    {
-        if ($event['on_page'][1] == 'calendar')
-        {
-            $event['location'] = $this->user->lang['VIEWING_TOPIC_CALENDAR'];
-            $event['location_url'] = append_sid("{$this->root_path}topic_calendar.$this->phpEx");
-        }
     }
     
     /**
@@ -401,8 +398,20 @@ class main_listener implements EventSubscriberInterface
     {
         $post_row = $event['post_row'];
         $post_row[] = array (
-            'EVENT'         => $this->functions_topiccal->show_event($this->user, $this->topic_calendar_table, $event['topic_data']['topic_id'], $event['row']['post_id']),
+            'EVENT'         => $this->functions_topiccal->show_event($this->user, $this->topic_calendar_table_events, $event['topic_data']['topic_id'], $event['row']['post_id']),
         );
         $event['post_row'] = $post_row;
+    }
+
+	/**
+	 * Display a mini calendar
+	 * 
+	 * @param unknown $event
+	 */    
+    public function display_mini_calendar($event)
+    {
+    	$month = $this->request->variable('month', 0);
+    	$year = $this->request->variable('year', 0);
+    	$this->tc_functions->display_mini_calendar($month, $year);	
     }
 }

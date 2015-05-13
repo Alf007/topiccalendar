@@ -1,11 +1,11 @@
 {
     "name": "alf007/topiccalendar",
     "type": "phpbb-extension",
-    "description": "Topic Calendar Extension for phpBB 3.1, conversion from MyCalendar",
+    "description": "Extension to define event date from topics, displayed on a calendar page - conversion/update from MyCalendar",
     "homepage": "https://github.com/Alf007/topiccalendar",
     "version": "1.0.0-dev",
     "time": "2015-05-11",
-    "keywords": ["calendar", "topic", "event"],
+    "keywords": ["phpbb", "extension", "calendar", "topic", "event", "birthdays"],
     "license": "GPL-2.0",
     "require": {
         "php": ">=5.3.3",

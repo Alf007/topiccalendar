@@ -13,7 +13,7 @@ class release_1_0_0 extends \phpbb\db\migration\migration
 {
 	public function effectively_installed()
 	{
-		return $this->db_tools->sql_table_exists($this->table_prefix . 'topic_calendar');
+		return $this->db_tools->sql_table_exists($this->table_prefix . 'topic_calendar_config');
 	}
 
 	static public function depends_on()
@@ -25,23 +25,30 @@ class release_1_0_0 extends \phpbb\db\migration\migration
 	{
 		return array(
 			'add_tables'		=> array(
-				$this->table_prefix . 'topic_calendar'	=> array(
-					'COLUMNS'		=> array(
-                                                'cal_id'    => array('INT:12', null, 'auto_increment'),
-                                                'topic_id'  => array('INT:20', null),
-                                                'cal_date'  => array('CHAR:19', '0000-00-00 00:00:00'),
-                                                'forum_id'  => array('INT:5')
+				$this->table_prefix . 'topic_calendar_config'	=> array(
+					'COLUMNS'	=> array(
+							'forum_ids'    => array('TEXT', ''),
+							'minical'  => array('BOOL', 0),
 					),
-					'PRIMARY_KEY'	=> 'cal_id',
-					'UNIQUE'	=> 'topic_id (topic_id)', 
-					'KEY'           => 'cal_date (cal_date)', 
-					'KEY'           => 'cal_id (cal_id)', 
-					'KEY'           => 'forum_id (forum_id)'
 				),
-			),
-			'add_columns'	=> array(
-				$this->table_prefix . 'forums'			=> array(
-					'enable_events'				=> array('BOOL', 0),
+				$this->table_prefix . 'topic_calendar_events'	=> array(
+					'COLUMNS'	=> array(
+							'id'    => array('UINT', null, 'auto_increment'),
+							'forum_id'  => array('UINT'),
+							'topic_id'  => array('UINT', null),
+							'year' => array('USINT', 0),
+							'month' => array('TINT:2', 0),
+							'day' => array('TINT:2', 0),
+							'hour' => array('TINT:2', 0),
+							'min' => array('TINT:2', 0),
+							'interval' => array('TINT:3', 0),
+							'repeat' => array('TINT:3', 0),
+							'interval_unit' => array('TINT:1', 0),
+					),
+					'PRIMARY_KEY'	=> 'id',
+					'UNIQUE'	=> 'topic_id (topic_id)', 
+					'KEY'		=> 'id (id)', 
+					'KEY'		=> 'forum_id (forum_id)'
 				),
 			),
 		);
@@ -50,13 +57,9 @@ class release_1_0_0 extends \phpbb\db\migration\migration
 	public function revert_schema()
 	{
 		return array(
-			'drop_columns'	=> array(
-				$this->table_prefix . 'forums'			=> array(
-					'enable_events',
-				),
-			),
 			'drop_tables'		=> array(
-				$this->table_prefix . 'topic_calendar',
+				$this->table_prefix . 'topic_calendar_config',
+				$this->table_prefix . 'topic_calendar_events',
 			),
 		);
 	}
@@ -64,38 +67,75 @@ class release_1_0_0 extends \phpbb\db\migration\migration
 	public function update_data()
 	{
 		return array(
-			array('custom', array(array($this, 'upgrade_from_30'))),
+			'if', array(
+				($this->db_tools->sql_table_exists($this->table_prefix . 'mycalendar')),		
+				array('custom', array(
+						array(&$this, 'upgrade_from_mycalendar')
+				)),
+			)
 		);
 	}
         
 	public function revert_data()
 	{
 		return array(
-                );
+		);
 	}
 	
-	public function upgrade_from_30()
+	public function upgrade_from_mycalendar()
 	{
-		if ($this->db_tools->sql_table_exists($this->table_prefix . 'mycalendar'))
+		//	Convert from MyCalendar (phpbb 3.0) to new table (no mysql dependant)
+		$sql = 'SELECT * FROM ' . $this->table_prefix . 'mycalendar';
+		$result = $this->sql_query($sql);
+		while ($row = $this->db->sql_fetchrow($result))
 		{
-			$sql = 'SELECT * FROM ' . $this->table_prefix . 'mycalendar';
+			$date = \DateTime::createFromFormat('Y-m-d H:i:s', strtotime($row['cal_date']));
+			if ($date == FALSE)
+				$date = '0000-00-00 00:00:00';
+			$sql = 'INSERT INTO ' . $this->table_prefix . 'topic_calendar_events ' . $this->db->sql_build_array('INSERT', array(
+						'forum_id'  => $row['forum_id'],
+						'topic_id'  => $row['topic_id'],
+						'year' => (int)$date->format('Y'),
+						'month' => (int)$date->format('m'),
+						'day' => (int)$date->format('d'),
+						'hour' => (int)$date->format('H'),
+						'min' => (int)$date->format('i'),
+						'interval' => $row['cal_interval'],
+						'repeat' => $row['cal_repeat'],
+						'interval_unit' => array('DAY', 'WEEK', 'MONTH', 'YEAR')[$row['cal_intercval_units']],
+				));
+			$this->sql_query($sql);
+		}
+		if (!$this->db->get_sql_error_triggered() &&
+			$this->db_tools->sql_column_exists(FORUMS_TABLE, 'enable_events'))
+		{	
+			//	Prevent messing with core table anymore, replace flag originally added to forum table,
+			//	by list of forum ids in extension config table
+			$sql = 'SELECT forum_id, enable_events FROM ' . FORUMS_TABLE;
 			$result = $this->sql_query($sql);
+			$forum_ids = '';
 			while ($row = $this->db->sql_fetchrow($result))
 			{
-				$date = date('Y-m-d H:i:s', strtotime($row['cal_date']));
-				if ($date == FALSE)
-					$date = '0000-00-00 00:00:00';
-				$sql = 'INSERT INTO ' . $this->table_prefix . 'topic_calendar ' . $this->db->sql_build_array('INSERT', array(
-							'topic_id'  => $row['topic_id'],
-							'cal_date'  => $date, 
-							'forum_id'  => $row['forum_id']
-						));
-				$this->sql_query($sql);
+				if ($row['enable_events'])
+				{
+					if ($forum_ids != '')
+						$forum_ids .= ',';
+					$forum_ids .= $row['forum_id'];
+				}			
 			}
+			$sql = 'INSERT INTO ' . $this->table_prefix . 'topic_calendar_config ' . $this->db->sql_build_array('INSERT', array(
+						'forum_ids'  => $forum_ids,
+						'minical'  => true,
+				));
+			$this->sql_query($sql);
 			if (!$this->db->get_sql_error_triggered())
 			{
-			//	$this->db_tools->sql_table_drop($this->table_prefix . 'mycalendar');
+			//	$this->db_tools->sql_column_drop(FORUMS_TABLE, 'enable_events');
 			}
+		}
+		if (!$this->db->get_sql_error_triggered())
+		{
+		//	$this->db_tools->sql_table_drop($this->table_prefix . 'mycalendar');
 		}
 	}
 }

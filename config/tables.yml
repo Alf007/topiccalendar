@@ -1,2 +1,3 @@
 parameters:
-    tables.topic_calendar: %core.table_prefix%topic_calendar
+    tables.topic_calendar_events: %core.table_prefix%topic_calendar_events
+    tables.topic_calendar_config: %core.table_prefix%topic_calendar_config

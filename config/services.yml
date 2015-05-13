@@ -14,18 +14,8 @@ services:
             - @user
             - %core.root_path%
             - %core.php_ext%
-            - %tables.topic_calendar%
-    alf007.topiccalendar.minical:
-        class: alf007\topiccalendar\controller\mini_calendar
-        arguments:
-            - @auth
-            - @dbal.conn
-            - @controller.helper
-            - @request
-            - @template
-            - @user
-            - %core.root_path%
-            - %core.php_ext%
+            - %tables.topic_calendar_config%
+            - %tables.topic_calendar_events%
     alf007.topiccalendar.listener:
         class:  alf007\topiccalendar\event\main_listener
         arguments:
@@ -36,7 +26,8 @@ services:
             - @template
             - @user
             - %core.php_ext%
-            - %tables.topic_calendar%
-            - @alf007.topiccalendar.minical
+            - %tables.topic_calendar_config%
+            - %tables.topic_calendar_events%
+            - @alf007.topiccalendar.controller
         tags:
             - { name: event.listener }
