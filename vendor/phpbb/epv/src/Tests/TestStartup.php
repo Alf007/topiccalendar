@@ -4,7 +4,7 @@
  * EPV :: The phpBB Forum Extension Pre Validator.
  *
  * @copyright (c) 2014 phpBB Limited <https://www.phpbb.com>
- * @license       GNU General Public License, version 2 (GPL-2.0)
+ * @license	   GNU General Public License, version 2 (GPL-2.0)
  *
  */
 namespace Phpbb\Epv\Tests;
@@ -33,20 +33,20 @@ class TestStartup
 
 	/**
 	 * @param OutputInterface $output   Output formatter
-	 * @param                 $type     int Type what the location is
-	 * @param                 $location string Location where the extension is
-	 * @param                 $debug    boolean if debug is enabled
-	 * @param string          $branch   When using GIT and GITHUB you can provide a branch name. When empty, defaults to master
+	 * @param				 $type	 int Type what the location is
+	 * @param				 $location string Location where the extension is
+	 * @param				 $debug	boolean if debug is enabled
+	 * @param string		  $branch   When using GIT and GITHUB you can provide a branch name. When empty, defaults to master
 	 */
 	public function __construct(OutputInterface $output, $type, $location, $debug, $branch = '')
 	{
 		$this->output = $output;
-		$rundir       = true;
+		$rundir	   = true;
 
 		if ($type == self::TYPE_GITHUB)
 		{
 			$location = 'https://github.com/' . $location;
-			$type     = self::TYPE_GIT;
+			$type	 = self::TYPE_GIT;
 		}
 
 		if ($type == self::TYPE_GIT)
@@ -67,7 +67,7 @@ class TestStartup
 	/**
 	 * Init a git repository
 	 *
-	 * @param string $git    Location of the git repo
+	 * @param string $git	Location of the git repo
 	 * @param string $branch branch to checkout
 	 *
 	 * @throws Exception\TestException

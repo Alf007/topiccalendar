@@ -4,7 +4,7 @@
  * EPV :: The phpBB Forum Extension Pre Validator.
  *
  * @copyright (c) 2014 phpBB Limited <https://www.phpbb.com>
- * @license       GNU General Public License, version 2 (GPL-2.0)
+ * @license	   GNU General Public License, version 2 (GPL-2.0)
  *
  */
 namespace Phpbb\Epv\Tests\Tests;
@@ -50,28 +50,28 @@ class epv_test_validate_php_functions extends BaseTest
 	 * @var array
 	 */
 	private $deprecated = array(
-		'gen_email_hash'            => 'phpbb_email_hash($email)',
-		'cache_moderators'          => 'phpbb_cache_moderators($db, $cache, $auth)',
-		'update_foes'               => 'phpbb_update_foes($db, $auth, $group_id, $user_id)',
-		'get_user_avatar'           => 'phpbb_get_avatar($row, $alt, $ignore_config)',
-		'phpbb_hash'                => '$passwords_manager->hash($password)',
-		'phpbb_check_hash'          => '$passwords_manager->check($password, $hash)',
-		'phpbb_clean_path'          => '$phpbb_path_helper->clean_path($path)',
-		'set_config'                => '$config->set($key, $value, $cache = true)',
-		'request_var'               => '$request->variable()',
-		'set_config_count'          => '$config->increment()',
-		'tz_select'                 => 'phpbb_timezone_select($user, $default, $truncate)',
-		'add_log'                   => '$phpbb_log->add()',
+		'gen_email_hash'			=> 'phpbb_email_hash($email)',
+		'cache_moderators'		  => 'phpbb_cache_moderators($db, $cache, $auth)',
+		'update_foes'			   => 'phpbb_update_foes($db, $auth, $group_id, $user_id)',
+		'get_user_avatar'		   => 'phpbb_get_avatar($row, $alt, $ignore_config)',
+		'phpbb_hash'				=> '$passwords_manager->hash($password)',
+		'phpbb_check_hash'		  => '$passwords_manager->check($password, $hash)',
+		'phpbb_clean_path'		  => '$phpbb_path_helper->clean_path($path)',
+		'set_config'				=> '$config->set($key, $value, $cache = true)',
+		'request_var'			   => '$request->variable()',
+		'set_config_count'		  => '$config->increment()',
+		'tz_select'				 => 'phpbb_timezone_select($user, $default, $truncate)',
+		'add_log'				   => '$phpbb_log->add()',
 
-		'set_var'                   => '$type_cast_helper->set_var()',
-		'get_tables'                => '$db_tools->sql_list_tables()',
+		'set_var'				   => '$type_cast_helper->set_var()',
+		'get_tables'				=> '$db_tools->sql_list_tables()',
 
 		// Removed, Not deprecated
 		'topic_generate_pagination' => 'phpbb_generate_template_pagination($template, $base_url, $block_var_name, $num_items, $per_page, $start_item = 1, $reverse_count = false, $ignore_on_page = false)',
-		'generate_pagination'       => 'phpbb_generate_template_pagination($template, $base_url, $block_var_name, $num_items, $per_page, $start_item = 1, $reverse_count = false, $ignore_on_page = false)',
-		'on_page'                   => 'phpbb_on_page($template, $user, $num_items, $per_page, $start)',
-		'remove_comments'           => 'phpbb_remove_comments($input)',
-		'remove_remarks'            => 'phpbb_remove_comments($input)',
+		'generate_pagination'	   => 'phpbb_generate_template_pagination($template, $base_url, $block_var_name, $num_items, $per_page, $start_item = 1, $reverse_count = false, $ignore_on_page = false)',
+		'on_page'				   => 'phpbb_on_page($template, $user, $num_items, $per_page, $start)',
+		'remove_comments'		   => 'phpbb_remove_comments($input)',
+		'remove_remarks'			=> 'phpbb_remove_comments($input)',
 	);
 
 	/**
@@ -92,18 +92,18 @@ class epv_test_validate_php_functions extends BaseTest
 	);
 
 	/**
-	 * @param bool            $debug if debug is enabled
+	 * @param bool			$debug if debug is enabled
 	 * @param OutputInterface $output
-	 * @param string          $basedir
-	 * @param string          $namespace
-	 * @param boolean         $titania
+	 * @param string		  $basedir
+	 * @param string		  $namespace
+	 * @param boolean		 $titania
 	 */
 	public function __construct($debug, OutputInterface $output, $basedir, $namespace, $titania)
 	{
 		parent::__construct($debug, $output, $basedir, $namespace, $titania);
 
 		$this->fileTypeFull   = Type::TYPE_PHP;
-		$this->parser         = new PHPParser_Parser(new PHPParser_Lexer_Emulative());
+		$this->parser		 = new PHPParser_Parser(new PHPParser_Lexer_Emulative());
 		$this->totalFileTests = 2;
 	}
 
@@ -130,7 +130,7 @@ class epv_test_validate_php_functions extends BaseTest
 	{
 		$this->output->writelnIfDebug('Attempting to parse file: ' . $file->getSaveFilename());
 
-		$this->file     = $file;
+		$this->file	 = $file;
 		$this->in_phpbb = false;
 
 		try
@@ -377,7 +377,7 @@ class epv_test_validate_php_functions extends BaseTest
 	/**
 	 * Valdiate the use of deprecated functions.
 	 *
-	 * @param                 $name
+	 * @param				 $name
 	 * @param \PHPParser_Node $node
 	 */
 	private function validateDeprecated($name, PHPParser_Node $node)
@@ -403,7 +403,7 @@ class epv_test_validate_php_functions extends BaseTest
 	/**
 	 * Validate the use of non dbal names.
 	 *
-	 * @param string          $name function name
+	 * @param string		  $name function name
 	 * @param \PHPParser_Node $node
 	 */
 	private function validateDbal($name, PHPParser_Node $node)
@@ -456,28 +456,28 @@ class epv_test_validate_php_functions extends BaseTest
 	/**
 	 * Validate if a node uses certain functions that should not be used within phpBB.
 	 *
-	 * @param                 $name
+	 * @param				 $name
 	 * @param \PHPParser_Node $node Node to validate
 	 */
 	private function validateFunctions($name, PHPParser_Node $node)
 	{
 		$warn_array = array(
-			'eval'             => Output::ERROR,
-			'exec'             => Output::ERROR,
-			'system'           => Output::ERROR,
-			'passthru'         => Output::ERROR,
-			'getenv'           => Output::ERROR,
-			'die'              => Output::ERROR,
-			'addslashes'       => Output::ERROR,
-			'stripslashes'     => Output::ERROR,
+			'eval'			 => Output::ERROR,
+			'exec'			 => Output::ERROR,
+			'system'		   => Output::ERROR,
+			'passthru'		 => Output::ERROR,
+			'getenv'		   => Output::ERROR,
+			'die'			  => Output::ERROR,
+			'addslashes'	   => Output::ERROR,
+			'stripslashes'	 => Output::ERROR,
 			'htmlspecialchars' => Output::ERROR,
-			'include_once'     => Output::WARNING,
-			'require_once'     => Output::WARNING,
-			'md5'              => Output::NOTICE,
-			'sha1'             => Output::NOTICE,
-			'var_dump'         => Output::ERROR,
-			'print_r'          => Output::ERROR,
-			'printf'           => Output::ERROR,
+			'include_once'	 => Output::WARNING,
+			'require_once'	 => Output::WARNING,
+			'md5'			  => Output::NOTICE,
+			'sha1'			 => Output::NOTICE,
+			'var_dump'		 => Output::ERROR,
+			'print_r'		  => Output::ERROR,
+			'printf'		   => Output::ERROR,
 		);
 
 		foreach ($warn_array as $err => $level)

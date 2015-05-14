@@ -22,149 +22,149 @@ use Gitonomy\Git\Exception\LogicException;
  */
 class PushReference
 {
-    const ZERO = "0000000000000000000000000000000000000000";
+	const ZERO = "0000000000000000000000000000000000000000";
 
-    /**
-     * @var string
-     */
-    protected $reference;
+	/**
+	 * @var string
+	 */
+	protected $reference;
 
-    /**
-     * @var string
-     */
-    protected $before;
+	/**
+	 * @var string
+	 */
+	protected $before;
 
-    /**
-     * @var string
-     */
-    protected $after;
+	/**
+	 * @var string
+	 */
+	protected $after;
 
-    /**
-     * @var boolean
-     */
-    protected $isForce;
+	/**
+	 * @var boolean
+	 */
+	protected $isForce;
 
-    public function __construct(Repository $repository, $reference, $before, $after)
-    {
-        $this->repository = $repository;
-        $this->reference  = $reference;
-        $this->before     = $before;
-        $this->after      = $after;
-        $this->isForce    = $this->getForce();
-    }
+	public function __construct(Repository $repository, $reference, $before, $after)
+	{
+		$this->repository = $repository;
+		$this->reference  = $reference;
+		$this->before	 = $before;
+		$this->after	  = $after;
+		$this->isForce	= $this->getForce();
+	}
 
-    /**
-     * @return Repository
-     */
-    public function getRepository()
-    {
-        return $this->repository;
-    }
+	/**
+	 * @return Repository
+	 */
+	public function getRepository()
+	{
+		return $this->repository;
+	}
 
-    /**
-     * @return string
-     */
-    public function getReference()
-    {
-        return $this->reference;
-    }
+	/**
+	 * @return string
+	 */
+	public function getReference()
+	{
+		return $this->reference;
+	}
 
-    /**
-     * @return string
-     */
-    public function getBefore()
-    {
-        return $this->before;
-    }
+	/**
+	 * @return string
+	 */
+	public function getBefore()
+	{
+		return $this->before;
+	}
 
-    /**
-     * @return string
-     */
-    public function getAfter()
-    {
-        return $this->after;
-    }
+	/**
+	 * @return string
+	 */
+	public function getAfter()
+	{
+		return $this->after;
+	}
 
-    /**
-     * @return array
-     */
-    public function getLog($excludes = array())
-    {
-        return $this->repository->getLog(array_merge(
-            array($this->getRevision()),
-            array_map(function ($e) {
-                return '^'.$e;
-            }, $excludes)
-        ));
-    }
+	/**
+	 * @return array
+	 */
+	public function getLog($excludes = array())
+	{
+		return $this->repository->getLog(array_merge(
+			array($this->getRevision()),
+			array_map(function ($e) {
+				return '^'.$e;
+			}, $excludes)
+		));
+	}
 
-    public function getRevision()
-    {
-        if ($this->isDelete()) {
-            throw new LogicException('No revision for deletion');
-        }
+	public function getRevision()
+	{
+		if ($this->isDelete()) {
+			throw new LogicException('No revision for deletion');
+		}
 
-        if ($this->isCreate()) {
-            return $this->getAfter();
-        }
+		if ($this->isCreate()) {
+			return $this->getAfter();
+		}
 
-        return $this->getBefore().'..'.$this->getAfter();
-    }
+		return $this->getBefore().'..'.$this->getAfter();
+	}
 
-    /**
-     * @return boolean
-     */
-    public function isCreate()
-    {
-        return $this->isZero($this->before);
-    }
+	/**
+	 * @return boolean
+	 */
+	public function isCreate()
+	{
+		return $this->isZero($this->before);
+	}
 
-    /**
-     * @return boolean
-     */
-    public function isDelete()
-    {
-        return $this->isZero($this->after);
-    }
+	/**
+	 * @return boolean
+	 */
+	public function isDelete()
+	{
+		return $this->isZero($this->after);
+	}
 
-    /**
-     * @return boolean
-     */
-    public function isForce()
-    {
-        return $this->isForce;
-    }
+	/**
+	 * @return boolean
+	 */
+	public function isForce()
+	{
+		return $this->isForce;
+	}
 
-    /**
-     * @return boolean
-     */
-    public function isFastForward()
-    {
-        return !$this->isDelete() && !$this->isCreate() && !$this->isForce();
-    }
+	/**
+	 * @return boolean
+	 */
+	public function isFastForward()
+	{
+		return !$this->isDelete() && !$this->isCreate() && !$this->isForce();
+	}
 
-    /**
-     * @return boolean
-     */
-    protected function isZero($reference)
-    {
-        return self::ZERO === $reference;
-    }
+	/**
+	 * @return boolean
+	 */
+	protected function isZero($reference)
+	{
+		return self::ZERO === $reference;
+	}
 
-    /**
-     * @return boolean
-     */
-    protected function getForce()
-    {
-        if ($this->isDelete() || $this->isCreate()) {
-            return false;
-        }
+	/**
+	 * @return boolean
+	 */
+	protected function getForce()
+	{
+		if ($this->isDelete() || $this->isCreate()) {
+			return false;
+		}
 
-        $result = $this->repository->run('merge-base', array(
-            $this->before,
-            $this->after
-        ));
+		$result = $this->repository->run('merge-base', array(
+			$this->before,
+			$this->after
+		));
 
-        return $this->before !== trim($result);
-    }
+		return $this->before !== trim($result);
+	}
 }

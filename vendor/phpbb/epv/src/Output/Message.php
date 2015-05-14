@@ -4,7 +4,7 @@
  * EPV :: The phpBB Forum Extension Pre Validator.
  *
  * @copyright (c) 2014 phpBB Limited <https://www.phpbb.com>
- * @license       GNU General Public License, version 2 (GPL-2.0)
+ * @license	   GNU General Public License, version 2 (GPL-2.0)
  *
  */
 namespace Phpbb\Epv\Output;
@@ -22,15 +22,15 @@ class Message
 	private $file;
 
 	/**
-	 * @param                                $type    int Type message
-	 * @param                                $message string Message
+	 * @param								$type	int Type message
+	 * @param								$message string Message
 	 * @param \Phpbb\Epv\Files\FileInterface $file
 	 */
 	public function __construct($type, $message, FileInterface $file = null)
 	{
-		$this->type    = $type;
+		$this->type	= $type;
 		$this->message = $message;
-		$this->file    = $file;
+		$this->file	= $file;
 	}
 
 	public function __toString()

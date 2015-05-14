@@ -67,10 +67,10 @@ class Output implements OutputInterface
 	/**
 	 * Add a new message to the output of the validator.
 	 *
-	 * @param                                $type    int message type
-	 * @param                                $message string message
-	 * @param \Phpbb\Epv\Files\FileInterface $file    File the error happened in. When provided, this is displayed to the user
-	 * @param bool                           $skipError
+	 * @param								$type	int message type
+	 * @param								$message string message
+	 * @param \Phpbb\Epv\Files\FileInterface $file	File the error happened in. When provided, this is displayed to the user
+	 * @param bool						   $skipError
 	 *
 	 * @return
 	 */

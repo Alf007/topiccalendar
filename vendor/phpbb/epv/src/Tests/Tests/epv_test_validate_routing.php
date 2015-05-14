@@ -4,7 +4,7 @@
  * EPV :: The phpBB Forum Extension Pre Validator.
  *
  * @copyright (c) 2014 phpBB Limited <https://www.phpbb.com>
- * @license       GNU General Public License, version 2 (GPL-2.0)
+ * @license	   GNU General Public License, version 2 (GPL-2.0)
  *
  */
 namespace Phpbb\Epv\Tests\Tests;
@@ -59,7 +59,7 @@ class epv_test_validate_routing extends BaseTest
 	/**
 	 * Validate the route name to match the requirements for routes.
 	 *
-	 * @param string                                     $route route name to validate
+	 * @param string									 $route route name to validate
 	 * @param \Phpbb\Epv\Files\Type\RoutingFileInterface $file
 	 */
 	private function validateRoutingName($route, RoutingFileInterface $file)

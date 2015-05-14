@@ -4,7 +4,7 @@
  * EPV :: The phpBB Forum Extension Pre Validator.
  *
  * @copyright (c) 2014 phpBB Limited <https://www.phpbb.com>
- * @license       GNU General Public License, version 2 (GPL-2.0)
+ * @license	   GNU General Public License, version 2 (GPL-2.0)
  *
  */
 
@@ -42,16 +42,16 @@ class php_exporter
 	 */
 	public function __construct(OutputInterface $output)
 	{
-		$this->output             = $output;
-		$this->events             = $this->file_lines = array();
-		$this->current_file       = $this->current_event = '';
+		$this->output			 = $output;
+		$this->events			 = $this->file_lines = array();
+		$this->current_file	   = $this->current_event = '';
 		$this->current_event_line = 0;
 	}
 
 	/**
 	 * Get the list of all events
 	 *
-	 * @return array        Array with events: name => details
+	 * @return array		Array with events: name => details
 	 */
 	public function get_events()
 	{
@@ -62,13 +62,13 @@ class php_exporter
 	 * Set current event data
 	 *
 	 * @param string $name Name of the current event (used for error messages)
-	 * @param int    $line Line where the current event is placed in
+	 * @param int	$line Line where the current event is placed in
 	 *
 	 * @return null
 	 */
 	public function set_current_event($name, $line)
 	{
-		$this->current_event      = $name;
+		$this->current_event	  = $name;
 		$this->current_event_line = $line;
 	}
 
@@ -94,7 +94,7 @@ class php_exporter
 	{
 		$this->current_file = $file;
 		$this->file_lines   = array();
-		$content            = file_get_contents($this->current_file);
+		$content			= file_get_contents($this->current_file);
 		$num_events_found   = 0;
 
 		if (strpos($content, "dispatcher->trigger_event('") || strpos($content, "dispatcher->dispatch('"))
@@ -102,9 +102,9 @@ class php_exporter
 			$this->set_content(explode("\n", $content));
 			for ($i = 0, $num_lines = sizeof($this->file_lines); $i < $num_lines; $i++)
 			{
-				$event_line          = false;
+				$event_line		  = false;
 				$found_trigger_event = strpos($this->file_lines[$i], "dispatcher->trigger_event('");
-				$arguments           = array();
+				$arguments		   = array();
 				if ($found_trigger_event !== false)
 				{
 					$event_line = $i;
@@ -133,11 +133,11 @@ class php_exporter
 
 					// Validate @since
 					$since_line_num = $this->find_since();
-					$since          = $this->validate_since($this->file_lines[$since_line_num]);
+					$since		  = $this->validate_since($this->file_lines[$since_line_num]);
 
 					// Find event description line
 					$description_line_num = $this->find_description();
-					$description          = substr(trim($this->file_lines[$description_line_num]), strlen('* '));
+					$description		  = substr(trim($this->file_lines[$description_line_num]), strlen('* '));
 
 					if (isset($this->events[$this->current_event]))
 					{
@@ -148,10 +148,10 @@ class php_exporter
 
 					sort($arguments);
 					$this->events[$this->current_event] = array(
-						'event'       => $this->current_event,
-						'file'        => $this->current_file,
+						'event'	   => $this->current_event,
+						'file'		=> $this->current_file,
 						'arguments'   => $arguments,
-						'since'       => $since,
+						'since'	   => $since,
 						'description' => $description,
 					);
 					$num_events_found++;
@@ -168,7 +168,7 @@ class php_exporter
 	 * @param int  $event_line
 	 * @param bool $is_dispatch Do we look for dispatch() or trigger_event() ?
 	 *
-	 * @return string    Name of the event
+	 * @return string	Name of the event
 	 * @throws \LogicException
 	 */
 	public function get_event_name($event_line, $is_dispatch)
@@ -231,7 +231,7 @@ class php_exporter
 	/**
 	 * Find the $vars array
 	 *
-	 * @return array        List of variables
+	 * @return array		List of variables
 	 * @throws \LogicException
 	 */
 	public function get_vars_from_array()
@@ -262,11 +262,11 @@ class php_exporter
 	/**
 	 * Find the variables in single line array
 	 *
-	 * @param    string $line
-	 * @param    bool   $throw_multiline      Throw an exception when there are too
-	 *                                        many arguments in one line.
+	 * @param	string $line
+	 * @param	bool   $throw_multiline	  Throw an exception when there are too
+	 *										many arguments in one line.
 	 *
-	 * @return array        List of variables
+	 * @return array		List of variables
 	 * @throws \LogicException
 	 */
 	public function get_vars_from_single_line_array($line, $throw_multiline = true)
@@ -294,13 +294,13 @@ class php_exporter
 	/**
 	 * Find the variables in single line array
 	 *
-	 * @return array        List of variables
+	 * @return array		List of variables
 	 * @throws \LogicException
 	 */
 	public function get_vars_from_multi_line_array()
 	{
 		$current_vars_line = 2;
-		$var_lines         = array();
+		$var_lines		 = array();
 		while (ltrim($this->file_lines[$this->current_event_line - $current_vars_line], "\t") !== '$vars = array(')
 		{
 			$var_lines[] = substr(trim($this->file_lines[$this->current_event_line - $current_vars_line]), 0, -1);
@@ -319,12 +319,12 @@ class php_exporter
 	/**
 	 * Find the $vars array
 	 *
-	 * @return array        List of variables
+	 * @return array		List of variables
 	 * @throws \LogicException
 	 */
 	public function get_vars_from_docblock()
 	{
-		$doc_vars          = array();
+		$doc_vars		  = array();
 		$current_doc_line  = 1;
 		$found_comment_end = false;
 		while (ltrim($this->file_lines[$this->current_event_line - $current_doc_line], "\t") !== '/**')
@@ -402,16 +402,16 @@ class php_exporter
 	/**
 	 * Find a "@*" Information line
 	 *
-	 * @param string $find_tag            Name of the tag we are trying to find
-	 * @param array  $disallowed_tags     List of tags that must not appear between
-	 *                                    the tag and the actual event
+	 * @param string $find_tag			Name of the tag we are trying to find
+	 * @param array  $disallowed_tags	 List of tags that must not appear between
+	 *									the tag and the actual event
 	 *
 	 * @return int Absolute line number
 	 * @throws \LogicException
 	 */
 	public function find_tag($find_tag, $disallowed_tags)
 	{
-		$find_tag_line     = 0;
+		$find_tag_line	 = 0;
 		$found_comment_end = false;
 		while (strpos(ltrim($this->file_lines[$this->current_event_line - $find_tag_line], "\t"), '* @' . $find_tag . ' ') !== 0)
 		{
@@ -534,7 +534,7 @@ class php_exporter
 	/**
 	 * Validates that two arrays contain the same strings
 	 *
-	 * @param array $vars_array    Variables found in the array line
+	 * @param array $vars_array	Variables found in the array line
 	 * @param array $vars_docblock Variables found in the doc block
 	 *
 	 * @return null
@@ -542,8 +542,8 @@ class php_exporter
 	 */
 	public function validate_vars_docblock_array($vars_array, $vars_docblock)
 	{
-		$vars_array        = array_unique($vars_array);
-		$vars_docblock     = array_unique($vars_docblock);
+		$vars_array		= array_unique($vars_array);
+		$vars_docblock	 = array_unique($vars_docblock);
 		$sizeof_vars_array = sizeof($vars_array);
 
 		if ($sizeof_vars_array !== sizeof($vars_docblock) || $sizeof_vars_array !== sizeof(array_intersect($vars_array, $vars_docblock)))

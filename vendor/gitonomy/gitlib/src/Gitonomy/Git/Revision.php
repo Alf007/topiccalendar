@@ -21,53 +21,53 @@ use Gitonomy\Git\Exception\ProcessException;
  */
 class Revision
 {
-    /**
-     * @var Repository
-     */
-    protected $repository;
+	/**
+	 * @var Repository
+	 */
+	protected $repository;
 
-    /**
-     * @var string
-     */
-    protected $revision;
+	/**
+	 * @var string
+	 */
+	protected $revision;
 
-    public function __construct(Repository $repository, $revision)
-    {
-        $this->repository = $repository;
-        $this->revision   = $revision;
-    }
+	public function __construct(Repository $repository, $revision)
+	{
+		$this->repository = $repository;
+		$this->revision   = $revision;
+	}
 
-    /**
-     * @return Log
-     */
-    public function getLog($paths = null, $offset = null, $limit = null)
-    {
-        return $this->repository->getLog($this, $paths, $offset, $limit);
-    }
+	/**
+	 * @return Log
+	 */
+	public function getLog($paths = null, $offset = null, $limit = null)
+	{
+		return $this->repository->getLog($this, $paths, $offset, $limit);
+	}
 
-    /**
-     * Returns the last modification date of the reference.
-     *
-     * @return Commit
-     */
-    public function getCommit()
-    {
-        return $this->getLog()->getSingleCommit();
-    }
+	/**
+	 * Returns the last modification date of the reference.
+	 *
+	 * @return Commit
+	 */
+	public function getCommit()
+	{
+		return $this->getLog()->getSingleCommit();
+	}
 
-    /**
-     * @return string
-     */
-    public function getRevision()
-    {
-        return $this->revision;
-    }
+	/**
+	 * @return string
+	 */
+	public function getRevision()
+	{
+		return $this->revision;
+	}
 
-    /**
-     * @return Repository
-     */
-    public function getRepository()
-    {
-        return $this->repository;
-    }
+	/**
+	 * @return Repository
+	 */
+	public function getRepository()
+	{
+		return $this->repository;
+	}
 }

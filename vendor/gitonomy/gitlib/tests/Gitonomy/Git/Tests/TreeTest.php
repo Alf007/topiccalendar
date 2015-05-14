@@ -16,34 +16,34 @@ use Gitonomy\Git\Blob;
 
 class TreeTest extends AbstractTest
 {
-    const PATH_RESOLVING_COMMIT = 'cc06ac171d884282202dff88c1ded499a1f89420';
-    /**
-     * @dataProvider provideFooBar
-     */
-    public function testCase($repository)
-    {
-        $tree = $repository->getCommit(self::LONGFILE_COMMIT)->getTree();
+	const PATH_RESOLVING_COMMIT = 'cc06ac171d884282202dff88c1ded499a1f89420';
+	/**
+	 * @dataProvider provideFooBar
+	 */
+	public function testCase($repository)
+	{
+		$tree = $repository->getCommit(self::LONGFILE_COMMIT)->getTree();
 
-        $entries = $tree->getEntries();
+		$entries = $tree->getEntries();
 
-        $this->assertTrue(isset($entries['long.php']), "long.php is present");
-        $this->assertTrue($entries['long.php'][1] instanceof Blob, "long.php is a Blob");
+		$this->assertTrue(isset($entries['long.php']), "long.php is present");
+		$this->assertTrue($entries['long.php'][1] instanceof Blob, "long.php is a Blob");
 
-        $this->assertTrue(isset($entries['README.md']), "README.md is present");
-        $this->assertTrue($entries['README.md'][1] instanceof Blob, "README.md is a Blob");
-    }
+		$this->assertTrue(isset($entries['README.md']), "README.md is present");
+		$this->assertTrue($entries['README.md'][1] instanceof Blob, "README.md is a Blob");
+	}
 
-    /**
-     * @dataProvider provideFooBar
-     */
-    public function testResolvePath($repository)
-    {
-        $tree = $repository->getCommit(self::PATH_RESOLVING_COMMIT)->getTree();
-        $path = 'test/a/b/c';
+	/**
+	 * @dataProvider provideFooBar
+	 */
+	public function testResolvePath($repository)
+	{
+		$tree = $repository->getCommit(self::PATH_RESOLVING_COMMIT)->getTree();
+		$path = 'test/a/b/c';
 
-        $resolved = $tree->resolvePath($path);
-        $entries = $resolved->getEntries();
+		$resolved = $tree->resolvePath($path);
+		$entries = $resolved->getEntries();
 
-        $this->assertTrue(isset($entries['d']), "Successfully resolved source folder");
-    }
+		$this->assertTrue(isset($entries['d']), "Successfully resolved source folder");
+	}
 }

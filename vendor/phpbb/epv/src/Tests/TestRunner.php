@@ -4,7 +4,7 @@
  * EPV :: The phpBB Forum Extension Pre Validator.
  *
  * @copyright (c) 2014 phpBB Limited <https://www.phpbb.com>
- * @license       GNU General Public License, version 2 (GPL-2.0)
+ * @license	   GNU General Public License, version 2 (GPL-2.0)
  *
  */
 namespace Phpbb\Epv\Tests;
@@ -37,15 +37,15 @@ class TestRunner
 
 	/**
 	 * @param OutputInterface $output
-	 * @param string          $directory The directory where the extension is located
-	 * @param boolean         $debug     Debug mode
-	 * @param boolean         $isTitania If we run from titania or not
+	 * @param string		  $directory The directory where the extension is located
+	 * @param boolean		 $debug	 Debug mode
+	 * @param boolean		 $isTitania If we run from titania or not
 	 */
 	public function __construct(OutputInterface $output, $directory, $debug, $isTitania = false)
 	{
-		$this->output    = $output;
+		$this->output	= $output;
 		$this->directory = $directory;
-		$this->debug     = $debug;
+		$this->debug	 = $debug;
 		$this->titania   = $isTitania;
 
 		$this->setBasedir();

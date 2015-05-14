@@ -4,7 +4,7 @@
  * EPV :: The phpBB Forum Extension Pre Validator.
  *
  * @copyright (c) 2014 phpBB Limited <https://www.phpbb.com>
- * @license       GNU General Public License, version 2 (GPL-2.0)
+ * @license	   GNU General Public License, version 2 (GPL-2.0)
  *
  */
 namespace Phpbb\Epv\Files;
@@ -22,7 +22,7 @@ abstract class BaseFile implements FileInterface
 	protected $basedir;
 
 	/**
-	 * @param $debug     boolean Debug Mode
+	 * @param $debug	 boolean Debug Mode
 	 * @param $fileName  string filename for this file
 	 * @param $basedir   string namespace for the extension.
 	 *
@@ -34,7 +34,7 @@ abstract class BaseFile implements FileInterface
 		{
 			throw new FileException(sprintf("File (%s) could not be found", $fileName));
 		}
-		$this->debug    = $debug;
+		$this->debug	= $debug;
 		$this->fileName = $fileName;
 		$this->fileData = @file_get_contents($this->fileName);
 		$this->basedir  = $basedir;

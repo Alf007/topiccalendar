@@ -4,7 +4,7 @@
  * EPV :: The phpBB Forum Extension Pre Validator.
  *
  * @copyright (c) 2014 phpBB Limited <https://www.phpbb.com>
- * @license       GNU General Public License, version 2 (GPL-2.0)
+ * @license	   GNU General Public License, version 2 (GPL-2.0)
  *
  */
 namespace Phpbb\Epv\Files;
@@ -42,9 +42,9 @@ class FileLoader
 
 	/**
 	 * @param OutputInterface $output
-	 * @param                 $debug
-	 * @param                 $basedir
-	 * @param                 $rundir
+	 * @param				 $debug
+	 * @param				 $basedir
+	 * @param				 $rundir
 	 */
 	public function __construct(OutputInterface $output, $debug, $basedir, $rundir)
 	{

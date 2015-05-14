@@ -4,7 +4,7 @@
  * EPV :: The phpBB Forum Extension Pre Validator.
  *
  * @copyright (c) 2014 phpBB Limited <https://www.phpbb.com>
- * @license       GNU General Public License, version 2 (GPL-2.0)
+ * @license	   GNU General Public License, version 2 (GPL-2.0)
  *
  */
 
@@ -23,7 +23,7 @@ class recursive_event_filter_iterator extends \RecursiveFilterIterator
 	 * Construct
 	 *
 	 * @param \RecursiveIterator $iterator
-	 * @param string             $root_path
+	 * @param string			 $root_path
 	 */
 	public function __construct(\RecursiveIterator $iterator, $root_path)
 	{
@@ -47,7 +47,7 @@ class recursive_event_filter_iterator extends \RecursiveFilterIterator
 	public function accept()
 	{
 		$relative_path = str_replace(DIRECTORY_SEPARATOR, '/', $this->current());
-		$filename      = $this->current()->getFilename();
+		$filename	  = $this->current()->getFilename();
 
 		return (substr($relative_path, -4) === '.php' || $this->current()->isDir())
 		&& $filename[0] !== '.'

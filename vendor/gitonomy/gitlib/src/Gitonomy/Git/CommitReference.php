@@ -14,10 +14,10 @@ namespace Gitonomy\Git;
 
 class CommitReference
 {
-    private $hash;
+	private $hash;
 
-    public function __construct($hash)
-    {
-        $this->hash = $hash;
-    }
+	public function __construct($hash)
+	{
+		$this->hash = $hash;
+	}
 }

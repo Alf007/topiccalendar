@@ -21,89 +21,89 @@ use Gitonomy\Git\Exception\UnexpectedValueException;
  */
 class Tree
 {
-    protected $repository;
-    protected $hash;
-    protected $isInitialized = false;
-    protected $entries;
+	protected $repository;
+	protected $hash;
+	protected $isInitialized = false;
+	protected $entries;
 
-    public function __construct(Repository $repository, $hash)
-    {
-        $this->repository = $repository;
-        $this->hash = $hash;
-    }
+	public function __construct(Repository $repository, $hash)
+	{
+		$this->repository = $repository;
+		$this->hash = $hash;
+	}
 
-    public function getHash()
-    {
-        return $this->hash;
-    }
+	public function getHash()
+	{
+		return $this->hash;
+	}
 
-    protected function initialize()
-    {
-        if (true === $this->isInitialized) {
-            return;
-        }
+	protected function initialize()
+	{
+		if (true === $this->isInitialized) {
+			return;
+		}
 
-        $output = $this->repository->run('cat-file', array('-p', $this->hash));
-        $parser = new Parser\TreeParser();
-        $parser->parse($output);
+		$output = $this->repository->run('cat-file', array('-p', $this->hash));
+		$parser = new Parser\TreeParser();
+		$parser->parse($output);
 
-        $this->entries = array();
+		$this->entries = array();
 
-        foreach ($parser->entries as $entry) {
-            list($mode, $type, $hash, $name) = $entry;
-            if ($type == 'blob') {
-                $this->entries[$name] = array($mode, $this->repository->getBlob($hash));
-            } elseif ($type == 'tree') {
-                $this->entries[$name] = array($mode, $this->repository->getTree($hash));
-            } else {
-                $this->entries[$name] = array($mode, new CommitReference($hash));
-            }
-        }
+		foreach ($parser->entries as $entry) {
+			list($mode, $type, $hash, $name) = $entry;
+			if ($type == 'blob') {
+				$this->entries[$name] = array($mode, $this->repository->getBlob($hash));
+			} elseif ($type == 'tree') {
+				$this->entries[$name] = array($mode, $this->repository->getTree($hash));
+			} else {
+				$this->entries[$name] = array($mode, new CommitReference($hash));
+			}
+		}
 
-        $this->isInitialized = true;
-    }
+		$this->isInitialized = true;
+	}
 
-    /**
-     * @return array An associative array name => $object
-     */
-    public function getEntries()
-    {
-        $this->initialize();
+	/**
+	 * @return array An associative array name => $object
+	 */
+	public function getEntries()
+	{
+		$this->initialize();
 
-        return $this->entries;
-    }
+		return $this->entries;
+	}
 
-    public function getEntry($name)
-    {
-        $this->initialize();
+	public function getEntry($name)
+	{
+		$this->initialize();
 
-        if (!isset($this->entries[$name])) {
-            throw new InvalidArgumentException('No entry '.$name);
-        }
+		if (!isset($this->entries[$name])) {
+			throw new InvalidArgumentException('No entry '.$name);
+		}
 
-        return $this->entries[$name][1];
-    }
+		return $this->entries[$name][1];
+	}
 
-    public function resolvePath($path)
-    {
-        if ($path == '') {
-            return $this;
-        }
+	public function resolvePath($path)
+	{
+		if ($path == '') {
+			return $this;
+		}
 
-        $path = preg_replace('#^/#', '', $path);
+		$path = preg_replace('#^/#', '', $path);
 
-        $segments = explode('/', $path);
-        $element = $this;
-        foreach ($segments as $segment) {
-            if ($element instanceof Tree) {
-                $element = $element->getEntry($segment);
-            } elseif ($entry instanceof Blob) {
-                throw new InvalidArgumentException('Unresolvable path');
-            } else {
-                throw new UnexpectedValueException('Unknow type of element');
-            }
-        }
+		$segments = explode('/', $path);
+		$element = $this;
+		foreach ($segments as $segment) {
+			if ($element instanceof Tree) {
+				$element = $element->getEntry($segment);
+			} elseif ($entry instanceof Blob) {
+				throw new InvalidArgumentException('Unresolvable path');
+			} else {
+				throw new UnexpectedValueException('Unknow type of element');
+			}
+		}
 
-        return $element;
-    }
+		return $element;
+	}
 }

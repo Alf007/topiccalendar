@@ -4,7 +4,7 @@
  * EPV :: The phpBB Forum Extension Pre Validator.
  *
  * @copyright (c) 2014 phpBB Limited <https://www.phpbb.com>
- * @license       GNU General Public License, version 2 (GPL-2.0)
+ * @license	   GNU General Public License, version 2 (GPL-2.0)
  *
  */
 namespace Phpbb\Epv\Tests\Tests;
@@ -21,8 +21,8 @@ class epv_test_validate_directory_structure extends BaseTest
 	{
 		parent::__construct($debug, $output, $basedir, $namespace, $titania);
 
-        $this->directory = true;
-    }
+		$this->directory = true;
+	}
 
 	public function validateDirectory(array $dirList)
 	{
@@ -46,9 +46,9 @@ class epv_test_validate_directory_structure extends BaseTest
 					{
 						$this->output->addMessage(Output::WARNING, 'The name of composer.json should be completely lowercase.');
 					}
-					$sp    = str_replace('\\', '/', $dir);
+					$sp	= str_replace('\\', '/', $dir);
 					$split = explode('/', $sp);
-					$ns    = '';
+					$ns	= '';
 					if (sizeof($split) - 3 >= 0)
 					{
 						$ns .= $split[sizeof($split) - 3] . '/' . $split[sizeof($split) - 2];

@@ -4,7 +4,7 @@
  * EPV :: The phpBB Forum Extension Pre Validator.
  *
  * @copyright (c) 2014 phpBB Limited <https://www.phpbb.com>
- * @license       GNU General Public License, version 2 (GPL-2.0)
+ * @license	   GNU General Public License, version 2 (GPL-2.0)
  *
  */
 namespace Phpbb\Epv\Command;
@@ -39,12 +39,12 @@ class ValidateCommand extends Command
 
 	protected function execute(InputInterface $input, OutputInterface $output)
 	{
-		$dir    = $input->getOption("dir");
-		$git    = $input->getOption('git');
+		$dir	= $input->getOption("dir");
+		$git	= $input->getOption('git');
 		$github = $input->getOption('github');
 		$branch = $input->getOption('branch');
 		$type   = null;
-		$loc    = null;
+		$loc	= null;
 
 		if (!empty($github))
 		{

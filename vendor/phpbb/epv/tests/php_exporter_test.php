@@ -20,7 +20,7 @@ class php_exporter_test extends \PHPUnit_Framework_TestCase
 		return array(
 			array(27, './tests/events/invalid_name.php', 'rxu.PostsMerging.posts_merging_end', array(
 				array(
-					'type'    => Phpbb\Epv\Output\OutputInterface::ERROR,
+					'type'	=> Phpbb\Epv\Output\OutputInterface::ERROR,
 					'message' => 'Event names should be all lowercase in  for event rxu.PostsMerging.posts_merging_end',
 				))),
 			array(27, './tests/events/valid_name.php', 'rxu.postsmerging.posts_merging_end')

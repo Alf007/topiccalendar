@@ -22,41 +22,41 @@ use Gitonomy\Git\Reference;
  */
 class Branch extends Reference
 {
-    private $local = null;
+	private $local = null;
 
-    public function getName()
-    {
-        $fullname = $this->getFullname();
+	public function getName()
+	{
+		$fullname = $this->getFullname();
 
-        if (preg_match('#^refs/heads/(?<name>.*)$#', $fullname, $vars)) {
-            return $vars['name'];
-        }
+		if (preg_match('#^refs/heads/(?<name>.*)$#', $fullname, $vars)) {
+			return $vars['name'];
+		}
 
-        if (preg_match('#^refs/remotes/(?<remote>[^/]*)/(?<name>.*)$#', $fullname, $vars)) {
-            return $vars['remote'].'/'.$vars['name'];
-        }
+		if (preg_match('#^refs/remotes/(?<remote>[^/]*)/(?<name>.*)$#', $fullname, $vars)) {
+			return $vars['remote'].'/'.$vars['name'];
+		}
 
-        throw new RuntimeException(sprintf('Cannot extract branch name from "%s"', $fullname));
-    }
+		throw new RuntimeException(sprintf('Cannot extract branch name from "%s"', $fullname));
+	}
 
-    public function isRemote()
-    {
-        $this->detectBranchType();
+	public function isRemote()
+	{
+		$this->detectBranchType();
 
-        return !$this->local;
-    }
+		return !$this->local;
+	}
 
-    public function isLocal()
-    {
-        $this->detectBranchType();
+	public function isLocal()
+	{
+		$this->detectBranchType();
 
-        return $this->local;
-    }
+		return $this->local;
+	}
 
-    private function detectBranchType()
-    {
-        if (null === $this->local) {
-            $this->local = !preg_match('#^refs/remotes/(?<remote>[^/]*)/(?<name>.*)$#', $this->getFullname());
-        }
-    }
+	private function detectBranchType()
+	{
+		if (null === $this->local) {
+			$this->local = !preg_match('#^refs/remotes/(?<remote>[^/]*)/(?<name>.*)$#', $this->getFullname());
+		}
+	}
 }

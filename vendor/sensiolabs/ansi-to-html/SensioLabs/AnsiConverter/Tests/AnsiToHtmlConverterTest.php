@@ -15,42 +15,42 @@ use SensioLabs\AnsiConverter\AnsiToHtmlConverter;
 
 class AnsiToHtmlConverterTest extends \PHPUnit_Framework_TestCase
 {
-    /**
-     * @dataProvider getConvertData
-     */
-    public function testConvert($expected, $input)
-    {
-        $converter = new AnsiToHtmlConverter();
-        $this->assertEquals($expected, $converter->convert($input));
-    }
+	/**
+	 * @dataProvider getConvertData
+	 */
+	public function testConvert($expected, $input)
+	{
+		$converter = new AnsiToHtmlConverter();
+		$this->assertEquals($expected, $converter->convert($input));
+	}
 
-    public function getConvertData()
-    {
-        return array(
-            // text is escaped
-            array('<span style="background-color: black; color: white">foo &lt;br /&gt;</span>', 'foo <br />'),
+	public function getConvertData()
+	{
+		return array(
+			// text is escaped
+			array('<span style="background-color: black; color: white">foo &lt;br /&gt;</span>', 'foo <br />'),
 
-            // newlines are preserved
-            array("<span style=\"background-color: black; color: white\">foo\nbar</span>", "foo\nbar"),
+			// newlines are preserved
+			array("<span style=\"background-color: black; color: white\">foo\nbar</span>", "foo\nbar"),
 
-            // backspaces
-            array("<span style=\"background-color: black; color: white\">foo   </span>", "foobar\x08\x08\x08   "),
-            array("<span style=\"background-color: black; color: white\">foo</span><span style=\"background-color: black; color: white\">   </span>", "foob\e[31;41ma\e[0mr\x08\x08\x08   "),
+			// backspaces
+			array("<span style=\"background-color: black; color: white\">foo   </span>", "foobar\x08\x08\x08   "),
+			array("<span style=\"background-color: black; color: white\">foo</span><span style=\"background-color: black; color: white\">   </span>", "foob\e[31;41ma\e[0mr\x08\x08\x08   "),
 
-            // color
-            array("<span style=\"background-color: darkred; color: darkred\">foo</span>", "\e[31;41mfoo\e[0m"),
+			// color
+			array("<span style=\"background-color: darkred; color: darkred\">foo</span>", "\e[31;41mfoo\e[0m"),
 
-            // color with [m as a termination (equivalent to [0m])
-            array("<span style=\"background-color: darkred; color: darkred\">foo</span>", "\e[31;41mfoo\e[m"),
+			// color with [m as a termination (equivalent to [0m])
+			array("<span style=\"background-color: darkred; color: darkred\">foo</span>", "\e[31;41mfoo\e[m"),
 
-            // bright color
-            array("<span style=\"background-color: red; color: red\">foo</span>", "\e[31;41;1mfoo\e[0m"),
+			// bright color
+			array("<span style=\"background-color: red; color: red\">foo</span>", "\e[31;41;1mfoo\e[0m"),
 
-            // carriage returns
-            array("<span style=\"background-color: black; color: white\">foobar</span>", "foo\rbar\rfoobar"),
+			// carriage returns
+			array("<span style=\"background-color: black; color: white\">foobar</span>", "foo\rbar\rfoobar"),
 
-            // underline
-            array("<span style=\"background-color: black; color: white; text-decoration: underline\">foo</span>", "\e[4mfoo\e[0m"),
-        );
-    }
+			// underline
+			array("<span style=\"background-color: black; color: white; text-decoration: underline\">foo</span>", "\e[4mfoo\e[0m"),
+		);
+	}
 }

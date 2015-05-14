@@ -3,7 +3,7 @@ namespace Composer\Installers;
 
 class LaravelInstaller extends BaseInstaller
 {
-    protected $locations = array(
-        'library' => 'libraries/{$name}/',
-    );
+	protected $locations = array(
+		'library' => 'libraries/{$name}/',
+	);
 }

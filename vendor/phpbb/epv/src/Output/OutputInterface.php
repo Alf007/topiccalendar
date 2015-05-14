@@ -4,7 +4,7 @@
  * EPV :: The phpBB Forum Extension Pre Validator.
  *
  * @copyright (c) 2014 phpBB Limited <https://www.phpbb.com>
- * @license       GNU General Public License, version 2 (GPL-2.0)
+ * @license	   GNU General Public License, version 2 (GPL-2.0)
  *
  */
 namespace Phpbb\Epv\Output;
@@ -32,9 +32,9 @@ interface OutputInterface extends \Symfony\Component\Console\Output\OutputInterf
 	/**
 	 * Add a new message to the output of the validator.
 	 *
-	 * @param                                $type    int message type
-	 * @param                                $message string message
-	 * @param \Phpbb\Epv\Files\FileInterface $file    File the error happened in. When provided, this is displayed to the user
+	 * @param								$type	int message type
+	 * @param								$message string message
+	 * @param \Phpbb\Epv\Files\FileInterface $file	File the error happened in. When provided, this is displayed to the user
 	 *
 	 * @return
 	 */

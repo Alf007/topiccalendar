@@ -19,39 +19,39 @@ use Gitonomy\Git\Commit;
  */
 class Line
 {
-    /**
-     * @var Commit
-     */
-    protected $commit;
-    protected $sourceLine;
-    protected $targetLine;
-    protected $blockLine;
-    protected $content;
+	/**
+	 * @var Commit
+	 */
+	protected $commit;
+	protected $sourceLine;
+	protected $targetLine;
+	protected $blockLine;
+	protected $content;
 
-    /**
-     * Instanciates a new Line object.
-     */
-    public function __construct(Commit $commit, $sourceLine, $targetLine, $blockLine, $content)
-    {
-        $this->commit     = $commit;
-        $this->sourceLine = $sourceLine;
-        $this->targetLine = $targetLine;
-        $this->blockLine  = $blockLine;
-        $this->content    = $content;
-    }
+	/**
+	 * Instanciates a new Line object.
+	 */
+	public function __construct(Commit $commit, $sourceLine, $targetLine, $blockLine, $content)
+	{
+		$this->commit	 = $commit;
+		$this->sourceLine = $sourceLine;
+		$this->targetLine = $targetLine;
+		$this->blockLine  = $blockLine;
+		$this->content	= $content;
+	}
 
-    public function getContent()
-    {
-        return $this->content;
-    }
+	public function getContent()
+	{
+		return $this->content;
+	}
 
-    public function getLine()
-    {
-        return $this->sourceLine;
-    }
+	public function getLine()
+	{
+		return $this->sourceLine;
+	}
 
-    public function getCommit()
-    {
-        return $this->commit;
-    }
+	public function getCommit()
+	{
+		return $this->commit;
+	}
 }

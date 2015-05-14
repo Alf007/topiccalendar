@@ -4,7 +4,7 @@
  * EPV :: The phpBB Forum Extension Pre Validator.
  *
  * @copyright (c) 2014 phpBB Limited <https://www.phpbb.com>
- * @license       GNU General Public License, version 2 (GPL-2.0)
+ * @license	   GNU General Public License, version 2 (GPL-2.0)
  *
  */
 namespace Phpbb\Epv\Tests\Tests;
@@ -65,7 +65,7 @@ class epv_test_validate_service extends BaseTest
 	/**
 	 * Validate the service name to match the requirements for services.
 	 *
-	 * @param string                                     $service service name to validate
+	 * @param string									 $service service name to validate
 	 * @param \Phpbb\Epv\Files\Type\ServiceFileInterface $file
 	 */
 	private function validateServiceName($service, ServiceFileInterface $file)
