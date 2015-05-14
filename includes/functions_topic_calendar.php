@@ -32,7 +32,7 @@ class Date
 	 *
 	 * @param	string date (all numbers < 10 must be '0' padded at this point)
 	 * @param	array	language table
-	 *        	
+	 *			
 	 * @access public
 	 * 
 	 * @return object date or false
@@ -102,45 +102,45 @@ class Date
 
 class functions_topic_calendar
 {
-    /* @var \phpbb\config\config */
+	/* @var \phpbb\config\config */
 	protected $config;
-    
-    /** @var \phpbb\db\driver\driver_interface */
+	
+	/** @var \phpbb\db\driver\driver_interface */
 	protected $db;
 
 	/** @var \phpbb\request\request_interface */
 	protected $request;
 	
 	/* @var \phpbb\template\template */
-    protected $template;
+	protected $template;
 
-    /* @var \phpbb\user */
-    protected $user;
-    
-    /* @var topic_calendar tables */
-    protected $topic_calendar_table_config;
-    protected $topic_calendar_table_events;
-    
-    /**
-    * Constructor
-    *
-    * @param \phpbb\config\config               $config
-    * @param \phpbb\db\driver\driver_interface  $db
-    * @param \phpbb\request\request_interface   $request        Request variables
-    * @param \phpbb\template					$template	Template object
-    * @param \phpbb\user                        $user
-    * @param string 							$table_config  extension config table name
-    * @param string 							$table_events  extension events table name
-    */
-    public function __construct($config, $db, \phpbb\request\request_interface $request, \phpbb\template $template, \phpbb\user $user, $table_config, $table_events)
+	/* @var \phpbb\user */
+	protected $user;
+	
+	/* @var topic_calendar tables */
+	protected $topic_calendar_table_config;
+	protected $topic_calendar_table_events;
+	
+	/**
+	* Constructor
+	*
+	* @param \phpbb\config\config			   $config
+	* @param \phpbb\db\driver\driver_interface  $db
+	* @param \phpbb\request\request_interface   $request		Request variables
+	* @param \phpbb\template\template			$template	Template object
+	* @param \phpbb\user						$user
+	* @param string 							$table_config  extension config table name
+	* @param string 							$table_events  extension events table name
+	*/
+	public function __construct($config, $db, \phpbb\request\request_interface $request, \phpbb\template\template $template, \phpbb\user $user, $table_config, $table_events)
 	{
 		$this->config = $config;
 		$this->db = $db;
-        $this->request = $request;
+		$this->request = $request;
 		$this->template = $template;
 		$this->user = $user;
 		$this->topic_calendar_table_config = $table_config;
-        $this->topic_calendar_table_events = $table_events;
+		$this->topic_calendar_table_events = $table_events;
 	}
 
 	/**
@@ -168,7 +168,7 @@ class functions_topic_calendar
 	 * allows the handling of calendar events. The results are cache
 	 * as a static variable.
 	 *
-	 * @param int $forum_id        	
+	 * @param int $forum_id			
 	 *
 	 * @access public
 	 * @return boolean
@@ -189,7 +189,7 @@ class functions_topic_calendar
 			$forum_ids = $this->get_enabled_forums();
 			if ($forum_ids)
 			{
-				$events_forums[$row['forum_id']] = in_array($forum_id, explode(',', $forum_ids));
+				$events_forums[$forum_id] = in_array($forum_id, explode(',', $forum_ids));
 			}
 		}
 		
@@ -206,13 +206,13 @@ class functions_topic_calendar
 	 * @param int		$forum_id		id of the forum
 	 * @param int		$topic_id		id of the topic
 	 * @param int		$post_id		id of the post
-     * @param string 	$date
-     * @param int		$repeat
-     * @param boolean	$interval_date
-     * @param string 	$date_end
-     * @param boolean	$repeat_always
-     * @param int		$interval
-     * @param int		$interval_units
+	 * @param string 	$date
+	 * @param int		$repeat
+	 * @param boolean	$interval_date
+	 * @param string 	$date_end
+	 * @param boolean	$repeat_always
+	 * @param int		$interval
+	 * @param int		$interval_units
 	 *
 	 * @access public
 	 * @return void
@@ -281,8 +281,8 @@ class functions_topic_calendar
 					'day' => $start_date->day,
 					'hour' => $start_date->hour,
 					'min' => $start_date->minute,
-					'interval' => $interval,
-					'repeat' => $repeat,
+					'cal_interval' => $interval,
+					'cal_repeat' => $repeat,
 					'interval_unit' => $intercval_units,
 			));
 			$result = $this->db->sql_query($sql);
@@ -326,8 +326,8 @@ class functions_topic_calendar
 							'day' => $start_date->day,
 							'hour' => $start_date->hour,
 							'min' => $start_date->minute,
-							'interval' => $interval,
-							'repeat' => $repeat,
+							'cal_interval' => $interval,
+							'cal_repeat' => $repeat,
 							'interval_unit' => $intercval_units
 					)) . ' WHERE ' . $this->db->sql_build_array('SELECT', array(
 						'topic_id' => (int) $topic_id 
@@ -345,8 +345,8 @@ class functions_topic_calendar
 					'day' => $start_date->day,
 					'hour' => $start_date->hour,
 					'min' => $start_date->minute,
-					'interval' => $interval,
-					'repeat' => $repeat,
+					'cal_interval' => $interval,
+					'cal_repeat' => $repeat,
 					'interval_unit' => $intercval_units
 				));
 				$this->db->sql_query($sql);
@@ -386,15 +386,15 @@ class functions_topic_calendar
 	 * to a forum which allows events to be used. In the case of a reoccuring/block date,
 	 * the display will be such that it explains this attribute.
 	 *
-	 * @param int $topic_id        	identifier of the topic
-	 * @param int $post_id        	identifier of the post, used to determine if this is the leading post (or 0 for forum view)
-	 *        	
+	 * @param int $topic_id			identifier of the topic
+	 * @param int $post_id			identifier of the post, used to determine if this is the leading post (or 0 for forum view)
+	 *			
 	 * @access public
 	 * @return string body message
 	 */
 	public function show_event($topic_id, $post_id)
 	{
-		$format = $this->user->lang['DATE_SQL_FORMAT'];
+		$format = $this->user->lang['DATE_FORMAT'];
 		$info = '';
 		$forum_ids = $this->get_enabled_forums();
 		$sql_where = array(
@@ -412,7 +412,7 @@ class functions_topic_calendar
 				TOPICS_TABLE => 't',
 			),
 			'WHERE' => $this->db->sql_build_array('SELECT', $sql_where) . ' 
-            	AND e.forum_id IN (' . $forum_ids . ')' 
+				AND e.forum_id IN (' . $forum_ids . ')' 
 		);
 		$sql = $this->db->sql_build_query('SELECT', $sql_array);
 		$result = $this->db->sql_query($sql);
@@ -421,16 +421,16 @@ class functions_topic_calendar
 		$this->db->sql_freeresult($result);
 		if ($row)
 		{
-			$date = new Date($row['year'], $row['month'], $row['day'], $row['hour'], $row['min']);
-			$date_f = $date->getDateTime()->format($format);
-			$interval = $row['interval']; 
-			$repeat = $row['repeat'];
-			$event['message'] = '<i>' . $this->translate_date($date_f) . '</i>';
+			$date = $this->user->create_datetime(sprintf('%d-%02d-01 %02d:%02d:00', $row['year'], $row['month'], $row['day'], $row['hour'], $row['min']));
+			$date_f = $date->format($format);
+			$interval = $row['cal_interval']; 
+			$repeat = $row['cal_repeat'];
+			$event['message'] = '<i>' . $date_f . '</i>';
 			// if this is more than a single date event, then dig deeper
-			if ($row['repeat'] != 1)
+			if ($row['cal_repeat'] != 1)
 			{
 				// if this is a repeating or block event (repeat > 1), show end date!
-				if ($row['repeat'] > 1)
+				if ($row['cal_repeat'] > 1)
 				{
 					$interval_num = $interval * $repeat;
 					switch ($row['interval_units'])
@@ -467,15 +467,15 @@ class functions_topic_calendar
 					}
 					;
 					$date_end = $date->getDateTime()->add(new \DateInterval('P' . $interval_format));
-					$event['message'] .= ' - <i>' . $this->translate_date($date_end->format($format)) . '</i>';
+					$event['message'] .= ' - <i>' . $date_end->format($format) . '</i>';
 				}
 			
 				// we have a non-continuous interval or a 'forever' repeating event, so we will explain it
 				if (!($row['interval_units'] == 0 && $interval == 1 && $repeat != 0))
 				{
-					$units = ($row['interval'] == 1) ? $this->user->lang['INTERVAL'][$row['interval_units']] : $this->user->lang['INTERVAL'][$row['interval_units'] . 'S'];
-					$repeat = $row['repeat'] ? $row['repeat'] . 'x' : $this->user->lang['CAL_REPEAT_FOREVER'];
-					$event['message'] .= '<br /><b>' .  $this->user->lang['SEL_INTERVAL'] .  '</b> ' .  $row['interval'] .  ' ' .  $units .  '<br /><b>' .  $this->user->lang['CALENDAR_REPEAT'] .  '</b> ' .  $repeat;
+					$units = ($row['cal_interval'] == 1) ? $this->user->lang['INTERVAL'][$row['interval_units']] : $this->user->lang['INTERVAL'][$row['interval_units'] . 'S'];
+					$repeat = $row['cal_repeat'] ? $row['cal_repeat'] . 'x' : $this->user->lang['CAL_REPEAT_FOREVER'];
+					$event['message'] .= '<br /><b>' .  $this->user->lang['SEL_INTERVAL'] .  '</b> ' .  $row['cal_interval'] .  ' ' .  $units .  '<br /><b>' .  $this->user->lang['CALENDAR_REPEAT'] .  '</b> ' .  $repeat;
 				}
 			}
 			$info = $event['message'];
@@ -489,11 +489,11 @@ class functions_topic_calendar
 	 * When a new post is added or the first post in topic is edited, the poster
 	 * will be presented with an event date selection box if posting to an event forum
 	 *
-	 * @param string $mode        	
-	 * @param int $topic_id        	
-	 * @param int $post_id        	
+	 * @param string $mode			
+	 * @param int $topic_id			
+	 * @param int $post_id			
 	 * @param int $forum_id
-	 * @param string $date        	
+	 * @param string $date			
 	 *
 	 * @access private
 	 * @return void
@@ -591,10 +591,10 @@ class functions_topic_calendar
 	 * can only be attached to the first post
 	 *
 	 * @param
-	 *        	int topic_id
+	 *			int topic_id
 	 * @param
-	 *        	int post_id
-	 *        	
+	 *			int post_id
+	 *			
 	 * @access public
 	 * @return boolean is first post
 	 */
@@ -618,12 +618,6 @@ class functions_topic_calendar
 		return true;
 	}
 	
-	// if I were to add timezone stuff it would be here
-	public function translate_date($in_date)
-	{
-		return $this->config['default_lang'] == 'english' ? $in_date : strtr($in_date, $this->user->lang['datetime']);
-	}
-	
 	/**
 	 * Universal single/plural option generator
 	 *
@@ -633,10 +627,10 @@ class functions_topic_calendar
 	 * Example: week(s), country/countries
 	 *
 	 * @param string $in_singular
-	 *        	singular word
+	 *			singular word
 	 * @param string $in_plural
-	 *        	plural word
-	 *        	
+	 *			plural word
+	 *			
 	 * @access public
 	 * @author moonbase
 	 * @return string combined singular/plural contruct
@@ -654,14 +648,14 @@ class functions_topic_calendar
 	{
 		$birthdays = array();
 		$sql = 'SELECT *
-                    FROM ' . USERS_TABLE . "
-                    WHERE user_birthday NOT LIKE '%- 0-%'
-                        AND user_birthday NOT LIKE '0-%'
-                        AND	user_birthday NOT LIKE '0- 0-%'
-                        AND	user_birthday NOT LIKE ''
-                        AND user_type IN (" . USER_NORMAL . ', ' . USER_FOUNDER . ')';
-		$result = $this->db->sql_query($sql);
-		while ($row = $this->db->sql_fetchrow($result))
+					FROM ' . USERS_TABLE . "
+					WHERE user_birthday NOT LIKE '%- 0-%'
+						AND user_birthday NOT LIKE '0-%'
+						AND	user_birthday NOT LIKE '0- 0-%'
+						AND	user_birthday NOT LIKE ''
+						AND user_type IN (" . USER_NORMAL . ', ' . USER_FOUNDER . ')';
+		$result = $db->sql_query($sql);
+		while ($row = $db->sql_fetchrow($result))
 		{
 			$birthdays[] = array(
 					'username'		=> $row['username'],
@@ -672,7 +666,7 @@ class functions_topic_calendar
 					'colour'		=> $row['user_colour']
 			);
 		}
-		$this->db->sql_freeresult($result);
+		$db->sql_freeresult($result);
 		sort($birthdays);
 		return $birthdays;
 	}

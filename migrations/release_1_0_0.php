@@ -27,22 +27,24 @@ class release_1_0_0 extends \phpbb\db\migration\migration
 			'add_tables'		=> array(
 				$this->table_prefix . 'topic_calendar_config'	=> array(
 					'COLUMNS'	=> array(
-							'forum_ids'    => array('TEXT', ''),
+							'forum_ids'	=> array('TEXT', ''),
 							'minical'  => array('BOOL', 0),
+							'minical_max_events' => array('USINT', 5),
+							'minical_days_ahead' => array('TINT:3', 0),
 					),
 				),
 				$this->table_prefix . 'topic_calendar_events'	=> array(
 					'COLUMNS'	=> array(
-							'id'    => array('UINT', null, 'auto_increment'),
-							'forum_id'  => array('UINT'),
+							'id'	=> array('UINT', null, 'auto_increment'),
+							'forum_id'  => array('UINT', null),
 							'topic_id'  => array('UINT', null),
 							'year' => array('USINT', 0),
 							'month' => array('TINT:2', 0),
 							'day' => array('TINT:2', 0),
 							'hour' => array('TINT:2', 0),
 							'min' => array('TINT:2', 0),
-							'interval' => array('TINT:3', 0),
-							'repeat' => array('TINT:3', 0),
+							'cal_interval' => array('TINT:3', 0),
+							'cal_repeat' => array('TINT:3', 0),
 							'interval_unit' => array('TINT:1', 0),
 					),
 					'PRIMARY_KEY'	=> 'id',
@@ -53,7 +55,7 @@ class release_1_0_0 extends \phpbb\db\migration\migration
 			),
 		);
 	}
-        
+		
 	public function revert_schema()
 	{
 		return array(
@@ -67,15 +69,16 @@ class release_1_0_0 extends \phpbb\db\migration\migration
 	public function update_data()
 	{
 		return array(
-			'if', array(
+			array('if', array(
 				($this->db_tools->sql_table_exists($this->table_prefix . 'mycalendar')),		
 				array('custom', array(
-						array(&$this, 'upgrade_from_mycalendar')
-				)),
-			)
+						array($this, 'upgrade_from_mycalendar')
+					)
+				),
+			)),
 		);
 	}
-        
+		
 	public function revert_data()
 	{
 		return array(
@@ -84,14 +87,15 @@ class release_1_0_0 extends \phpbb\db\migration\migration
 	
 	public function upgrade_from_mycalendar()
 	{
-		//	Convert from MyCalendar (phpbb 3.0) to new table (no mysql dependant)
+		$interval_units = array('DAY', 'WEEK', 'MONTH', 'YEAR');
+		//	Convert from MyCalendar (phpbb 3.0) to new table (no mysql dependancy)
 		$sql = 'SELECT * FROM ' . $this->table_prefix . 'mycalendar';
 		$result = $this->sql_query($sql);
 		while ($row = $this->db->sql_fetchrow($result))
 		{
-			$date = \DateTime::createFromFormat('Y-m-d H:i:s', strtotime($row['cal_date']));
+			$date = \DateTime::createFromFormat('Y-m-d H:i:s', $row['cal_date']);
 			if ($date == FALSE)
-				$date = '0000-00-00 00:00:00';
+				$date = new \DateTime();
 			$sql = 'INSERT INTO ' . $this->table_prefix . 'topic_calendar_events ' . $this->db->sql_build_array('INSERT', array(
 						'forum_id'  => $row['forum_id'],
 						'topic_id'  => $row['topic_id'],
@@ -100,9 +104,9 @@ class release_1_0_0 extends \phpbb\db\migration\migration
 						'day' => (int)$date->format('d'),
 						'hour' => (int)$date->format('H'),
 						'min' => (int)$date->format('i'),
-						'interval' => $row['cal_interval'],
-						'repeat' => $row['cal_repeat'],
-						'interval_unit' => array('DAY', 'WEEK', 'MONTH', 'YEAR')[$row['cal_intercval_units']],
+						'cal_interval' => (int)$row['cal_interval'],
+						'cal_repeat' => (int)$row['cal_repeat'],
+						'interval_unit' => array_search($row['cal_interval_units'], $interval_units),
 				));
 			$this->sql_query($sql);
 		}
@@ -113,18 +117,17 @@ class release_1_0_0 extends \phpbb\db\migration\migration
 			//	by list of forum ids in extension config table
 			$sql = 'SELECT forum_id, enable_events FROM ' . FORUMS_TABLE;
 			$result = $this->sql_query($sql);
-			$forum_ids = '';
+			$forum_ids = array();
 			while ($row = $this->db->sql_fetchrow($result))
 			{
 				if ($row['enable_events'])
 				{
-					if ($forum_ids != '')
-						$forum_ids .= ',';
-					$forum_ids .= $row['forum_id'];
+					$forum_ids[] = $row['forum_id'];
 				}			
 			}
+			sort($forum_ids);
 			$sql = 'INSERT INTO ' . $this->table_prefix . 'topic_calendar_config ' . $this->db->sql_build_array('INSERT', array(
-						'forum_ids'  => $forum_ids,
+						'forum_ids'  => implode(',', $forum_ids),
 						'minical'  => true,
 				));
 			$this->sql_query($sql);

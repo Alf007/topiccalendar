@@ -53,10 +53,6 @@ $lang = array_merge($lang, array(
 	'NO_DATE'				=> 'None',
 	'SELECT_START_DATE'		=> 'Please Select a Start Date', // must escape ' as \\\' for javascript
 	'CALENDAR_EVENT'		=> 'Calendar Event:',
-	'PREVIOUS_MONTH'		=> 'View Previous Month',
-	'NEXT_MONTH'			=> 'View Next Month',
-	'PREVIOUS_YEAR'			=> 'View Previous Year',
-	'NEXT_YEAR'				=> 'View Next Year',
 	'SEL_INTERVAL'			=> 'Interval:',
 	'CALENDAR_REPEAT'		=> 'Repeat:',
 	'DATE_SELECTOR_TITLE'	=> 'Date Selector',
@@ -69,60 +65,5 @@ $lang = array_merge($lang, array(
 // uses MySQL DATE_FORMAT - %c  long_month, numeric (1..12) - %e  Day of the long_month, numeric (0..31)
 // see http://www.mysql.com/doc/D/a/Date_and_time_functions.html for more details
 // currently supports: %a, %b, %c, %d, %e, %m, %y, %Y, %H, %k, %h, %l, %i, %s, %p
-	'Mini_Cal_date_format'	=> '%a %e %b',
-// if you change the first day of the week in constants.php, you should change values for the short day names accordingly
-// e.g. FDOW = Sunday -> 	'mini_cal']['day'][1	=> 'Su', ... 	'mini_cal']['day'][7	=> 'Sa', 
-//      FDOW = Monday -> 	'mini_cal']['day'][1	=> 'Mo', ... 	'mini_cal']['day'][7	=> 'Su', 
-	'MINICAL'	=> array(
-		'DAY'	=> array(
-			'SHORT'	=> array(
-				'Su',
-				'Mo',
-				'Tu',
-				'We',
-				'Th',
-				'Fr',
-				'Sa'
-			), 
-			'LONG'	=> array(
-				'Sunday',
-				'Monday',
-				'Tuesday',
-				'Wednesday',
-				'Thursday',
-				'Friday',
-				'Saturday'
-			),
-		),
-		'MONTH'	=> array(
-			'SHORT'	=> array(
-				'Jan',
-				'Feb',
-				'Mar',
-				'Apr',
-				'May',
-				'Jun',
-				'Jul',
-				'Aug',
-				'Sep',
-				'Oct',
-				'Nov',
-				'Dec'
-			), 
-			'LONG'	=> array(
-				'January', 
-				'February',
-				'March',
-				'April',
-				'May',
-				'June',
-				'July',
-				'August',
-				'September',
-				'October',
-				'November',
-				'December'
-			),
-		),
-	),
+	'MINI_CAL_DATE_FORMAT'	=> '%a %e %b',
 ));

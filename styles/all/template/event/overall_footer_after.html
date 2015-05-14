@@ -1,2 +1,17 @@
-<!-- INCLUDEJS @alf007_topiccalendar/js/jquery.js -->
 <!-- INCLUDEJS @alf007_topiccalendar/js/jquery-ui.js -->
+<script type="text/javascript">
+$.widget("ui.tooltip", $.ui.tooltip, {
+    options: {
+        content: function () {
+            return $(this).prop('title');
+        }
+    }
+});
+
+$(function () {
+    $('.event').attr('title', function(){
+        return $(this).find('.tooltip-contents').remove().html()
+    })
+    $(document).tooltip();
+});
+</script>

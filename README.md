@@ -8,7 +8,7 @@ This Extension allows a phpBB3.1 board owner to mark specified forums as calenda
 * An 'Event' panel is added to the Post editor, to define the date for the topic
 * Advanced options allow to define an interval to an ending date, or for recurring dates
 * The dedicated Calendar page offers up the first post by mousing over the event to reveal a tooltip. Using this feature, information added to the first post, such as Time and Place, can be viewed directly from the calendar page.
-* Convert data from phpBB 3.0 MyCalendar MOD - previously added column to the database FORUMS table is now in a separate table of the Extension *_topic_calendar_config which also includes new options for the Extension, *_mycalendar table is replaced by *_topic_calendar_events table, with MySQL-dependent column type DATETIME replaced by independant common types to store the date
+* Convert data from phpBB 3.0 MyCalendar MOD - previously added column to the database FORUMS table is now in a separate table of the Extension _topic_calendar_config which also includes new options for the Extension, _mycalendar table is replaced by _topic_calendar_events table, with MySQL-dependent column type DATETIME replaced by independant common types to store the date
 * MyCalendar MOD was extensively using (MySQL) Database dependent functionalities to work with Date calculation, this was replaced in the Extension by PHP (5.3+) equivalent functionalities, so to be cleared from database dependancy.
 
 ### Languages supported:

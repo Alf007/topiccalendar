@@ -31,9 +31,9 @@
 		</ul>
 		<ul class="topiclist topics"><li><dl><dt><form>
 			<ul class="monthyear forums">
-				<li class="previous"><a class="arrow-left" href="{U_PREV_MONTH}" title="{L_PREVIOUS_MONTH}"></a></li>
-				<li>{S_MONTH_YEAR}</li>
-				<li class="next"><a class="arrow-right" href="{U_NEXT_MONTH}" title="{L_NEXT_MONTH}"></a></li>
+				<li class="previous"><a class="arrow-left" href="{U_PREV_MONTH}" title="{S_PREVIOUS_MONTH}"></a></li>
+				<li>{S_MONTH} {S_YEAR}</li>
+				<li class="next"><a class="arrow-right" href="{U_NEXT_MONTH}" title="{S_NEXT_MONTH}"></a></li>
 			</ul>
 			<ul class="dayheaders">
 				<!-- BEGIN day_headers -->
@@ -45,13 +45,13 @@
 				<li class="notaday"> </li>
 				<!-- END before_first_day -->
 				<!-- IF START_DAY_LINK -->
-				<li class="notaday"><a href="{U_PREV_MONTH}" title="{L_PREVIOUS_MONTH}"><img src="{T_THEME_PATH}/images/arrow_left.gif" alt="{L_PREVIOUS_MONTH}" /></a></li>
+				<li class="notaday"><a class="arrow-left" href="{U_PREV_MONTH}" title="{S_PREVIOUS_MONTH}"></a></li>
 				<!-- ENDIF -->
 				<!-- BEGIN day_infos -->
 				<li class="{day_infos.DAY_CLASS} row day" {day_infos.DAY_OMO}>{day_infos.DAY_INFO}</li>
 				<!-- END day_infos -->
 				<!-- IF END_DAY_LINK -->
-				<li class="notaday"><a href="{U_NEXT_MONTH}" title="{L_NEXT_MONTH}"><img src="{T_THEME_PATH}/images/arrow_right.gif" alt="{L_NEXT_MONTH}" /></a></li>
+				<li class="notaday"><a class="arrow-right" href="{U_NEXT_MONTH}" title="{S_NEXT_MONTH}"></a></li>
 				<!-- ENDIF -->
 			</ul>
 		</form></dt></dl></li></ul>

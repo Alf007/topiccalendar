@@ -3,37 +3,51 @@
 <div class="forabg">
 	<div class="inner calendar">
 		<ul class="topiclist">
-			<li class="header"><strong>{L_CALENDAR}</strong></li>
+			<li class="header"><dl>
+				<dt><div><strong>{L_CALENDAR}</strong></div></dt>
+			</dl></li>
 		</ul>
 		<ul class="topiclist topics">
 			<li><dl><dt><form>
 				<ul class="monthyear forums">
-					<li class="previous"><a class="icon_double_left_arrow" href="{U_PREV_YEAR}" title="{L_PREVIOUS_YEAR}"></a></li>
-					<li class="previous"><a class="icon_left_arrow" href="{U_PREV_MONTH}" title="{L_PREVIOUS_MONTH}"></a></li>
-					<li>{S_MONTH_YEAR}</li>
-					<li class="next"><a class="icon_right_arrow" href="{U_NEXT_MONTH}" title="{L_NEXT_MONTH}"></a></li>
-					<li class="next"><a class="icon_double_right_arrow" href="{U_NEXT_YEAR}" title="{L_NEXT_YEAR}"></a></li>
+					<li class="previous"><a class="icon_double_left_arrow" href="{U_PREV_YEAR}" title="{S_PREVIOUS_YEAR}"></a></li>
+					<li class="previous"><a class="icon_left_arrow" href="{U_PREV_MONTH}" title="{S_PREVIOUS_MONTH}"></a></li>
+					<li>{S_MONTH} {S_YEAR}</li>
+					<li class="next"><a class="icon_right_arrow" href="{U_NEXT_MONTH}" title="{S_NEXT_MONTH}"></a></li>
+					<li class="next"><a class="icon_double_right_arrow" href="{U_NEXT_YEAR}" title="{S_NEXT_YEAR}"></a></li>
 				</ul>
 				<ul class="dayheaders">
-					<!-- BEGIN weekdays -->
-					<li class="bg1"><abbr title="{weekdays.WEEKDAY}">{weekdays.WEEKDAY}</abbr></li>
-					<!-- END weekdays -->
+					<!-- BEGIN day_headers -->
+					<li class="bg1"><abbr title="{day_headers.DAY_LONG}">{day_headers.DAY_LONG}</abbr></li>
+					<!-- END day_headers -->
 				</ul>
 				<ul class="days">
 					<!-- BEGIN before_first_day -->
 					<li class="notaday"> </li>
 					<!-- END before_first_day -->
 					<!-- IF START_DAY_LINK -->
-					<li class="notaday"><a class="icon_left_arrow" href="{U_PREV_MONTH}" title="{L_PREVIOUS_MONTH}"></a></li>
+					<li class="notaday">
+						<a class="icon_left_arrow" href="{U_PREV_MONTH}" title="{S_PREVIOUS_MONTH}"></a>
+					</li>
 					<!-- ENDIF -->
 					<!-- BEGIN day_infos -->
 					<li class="{day_infos.DAY_CLASS} row day"><div class="bg3">{day_infos.DAY_INFO}</div>
 						<ul class="event">
 						<!-- BEGIN date_event -->
-							<li><div class="event" data="event, 'content', '{day_infos.date_event.POPUP}';">{day_infos.date_event.U_EVENT}
-								<!-- IF day_infos.date_event.DAY_BLOCK_BEGIN -->
-								<div class="bar event_block_arrow" alt="-&gt;"></div>
-								<!-- ENDIF -->
+							<li>
+								<div class="event" id="event">
+									{day_infos.date_event.U_EVENT}
+									<!-- IF day_infos.date_event.DAY_BLOCK_BEGIN -->
+									<div class="bar event_block_arrow" alt="-&gt;"></div>
+									<!-- ELSEIF day_infos.date_event.DAY_BLOCK_END -->
+									<div class="bar event_block_end" alt="-]" /></div>
+									<!-- ENDIF -->
+									{day_infos.date_event.U_EVENT_END}
+									<!-- IF day_infos.date_event.POPUP -->
+									<div class="hidden tooltip-contents">
+										{day_infos.date_event.POPUP}
+									</div>
+									<!-- ENDIF -->
 								</div>
 							</li>
 						<!-- END date_event -->
@@ -44,7 +58,9 @@
 					</li>
 					<!-- END day_infos -->
 					<!-- IF END_DAY_LINK -->
-					<li class="notaday"><a class="icon_right_arrow" href="{U_NEXT_MONTH}" title="{L_NEXT_MONTH}"></a></li>
+					<li class="notaday">
+						<a class="icon_right_arrow" href="{U_NEXT_MONTH}" title="{S_NEXT_MONTH}"></a>
+					</li>
 					<!-- ENDIF -->
 				</ul>
 			</form></dt></dl></li>

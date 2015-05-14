@@ -53,10 +53,6 @@ $lang = array_merge($lang, array(
 	'NO_DATE'				=> 'Aucune',
 	'SELECT_START_DATE'		=> 'Veuillez sélectionner une Date de Début', // must escape ' as \\\' for javascript
 	'CALENDAR_EVENT'		=> 'Evènement Calendrier :',
-	'PREVIOUS_MONTH'		=> 'Voir Mois Précédent',
-	'NEXT_MONTH'			=> 'Voir Mois Suivant',
-	'PREVIOUS_YEAR'			=> 'Voir Année Précédente',
-	'NEXT_YEAR'				=> 'Voir Année Suivante',
 	'SEL_INTERVAL'			=> 'Intervalle :',
 	'CALENDAR_REPEAT'		=> 'Répéter :',
 	'DATE_SELECTOR_TITLE'	=> 'Sélection de Date',
@@ -66,61 +62,6 @@ $lang = array_merge($lang, array(
 	//	Mini cal
 	'MINI_CAL_EVENTS'		=> 'Evènements à venir',
 	'MINI_CAL_NO_EVENTS'	=> 'Aucun évènement à venir',
-// uses MySQL DATE_FORMAT - %c  long_month, numeric (1..12) - %e  Day of the long_month, numeric (0..31)
-// see http://www.mysql.com/doc/D/a/Date_and_time_functions.html for more details
-// currently supports: %a, %b, %c, %d, %e, %m, %y, %Y, %H, %k, %h, %l, %i, %s, %p
-	'Mini_Cal_date_format'	=> '%a %e %b',
 
-	'MINICAL'	=> array(
-		'DAY'	=> array(
-			'SHORT'	=> array(
-				'Di',
-				'Lu',
-				'Ma',
-				'Me',
-				'Je',
-				'Ve',
-				'Sa'
-			), 
-			'LONG'	=> array(
-				'Dimanche',
-				'Lundi',
-				'Mardi',
-				'Mercredi',
-				'Jeudi',
-				'Vendredi',
-				'Samedi'
-			),
-		),
-		'MONTH'	=> array(
-			'SHORT'	=> array(
-				'Jan',
-				'Fév',
-				'Mar',
-				'Avr',
-				'Mai',
-				'Juin',
-				'Juil',
-				'Aoû',
-				'Sep',
-				'Oct',
-				'Nov',
-				'Déc'
-			), 
-			'LONG'	=> array(
-				'Janvier', 
-				'Février',
-				'Mars',
-				'Avril',
-				'Mai',
-				'Juin',
-				'Juillet',
-				'Août',
-				'Septembre',
-				'Octobre',
-				'Novembre',
-				'Décembre'
-			),
-		),
-	),
+	'MINI_CAL_DATE_FORMAT'	=> '%a %e %b',
 ));
