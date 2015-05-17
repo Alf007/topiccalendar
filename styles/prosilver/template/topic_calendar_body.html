@@ -35,19 +35,20 @@
 						<ul class="event">
 						<!-- BEGIN date_event -->
 							<li>
-								<div class="event" id="event">
+								<div class="event">
 									{day_infos.date_event.U_EVENT}
+									<!-- IF day_infos.date_event.POPUP -->
+									<div>
+										<b class="callout"></b>
+										{day_infos.date_event.POPUP}
+									</div>
+									<!-- ENDIF -->
 									<!-- IF day_infos.date_event.DAY_BLOCK_BEGIN -->
 									<div class="bar event_block_arrow" alt="-&gt;"></div>
 									<!-- ELSEIF day_infos.date_event.DAY_BLOCK_END -->
 									<div class="bar event_block_end" alt="-]" /></div>
 									<!-- ENDIF -->
 									{day_infos.date_event.U_EVENT_END}
-									<!-- IF day_infos.date_event.POPUP -->
-									<div class="hidden tooltip-contents">
-										{day_infos.date_event.POPUP}
-									</div>
-									<!-- ENDIF -->
 								</div>
 							</li>
 						<!-- END date_event -->
@@ -65,8 +66,7 @@
 				</ul>
 			</form></dt></dl></li>
 		</ul>
-	<span class="corners-bottom"><span> </span></span></div>
+	</div>
 </div>
-
 <br style="clear:both" />
 <!-- INCLUDE overall_footer.html --> 

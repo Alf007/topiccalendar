@@ -23,20 +23,22 @@ class main_listener implements EventSubscriberInterface
 	static public function getSubscribedEvents()
 	{
 		return array(
-			'core.user_setup'						   => 'load_language_on_setup',
+			'core.user_setup'							=> 'load_language_on_setup',
 			'core.page_header_after'					=> 'add_page_header_after',
 			'core.acp_manage_forums_initialise_data'	=> 'initialize_forums_data',
-			'core.acp_manage_forums_request_data'	   => 'request_forums_data',
-			'core.acp_manage_forums_display_form'	   => 'display_forums_form',
-			'core.acp_manage_forums_move_content'	   => 'move_forums_content',
-			'core.acp_manage_forums_delete_content'	 => 'delete_forums_content',
-			'core.move_topics'						  => 'move_topics',
-			'core.delete_posts_after'				   => 'delete_posts',
-			'core.delete_topics'						=> 'delete_topics',
-			'core.posting_modify_submit_post_after'	 => 'submit_post_after',
+			'core.acp_manage_forums_request_data'		=> 'request_forums_data',
+			'core.acp_manage_forums_display_form'		=> 'display_forums_form',
+			'core.acp_manage_forums_move_content'		=> 'move_forums_content',
+			'core.delete_forum_content_before_query'	=> 'delete_forum_content',
+			'core.delete_posts_after'					=> 'delete_posts',
+			'core.move_topics_before_query'				=> 'move_topics',
+			'core.delete_topics_before_query'			=> 'delete_topics',
+			'core.posting_modify_template_vars'			=> 'posting_modify_template',
+			'core.posting_modify_submission_errors'		=> 'posting_modify_submission',
+			'core.posting_modify_submit_post_after'		=> 'submit_post_after',
 			'core.viewforum_modify_topicrow'			=> 'modify_topicrow',
 			'core.viewtopic_modify_post_row'			=> 'modify_post_row',
-			'core.index_modify_page_title'				=> 'display_mini_calendar',
+			'core.index_modify_page_title'				=> 'modify_page_title',
 		);
 	}
 
@@ -150,7 +152,7 @@ class main_listener implements EventSubscriberInterface
 		$this->template->assign_vars(array(
 			'U_TOPIC_CALENDAR'	=> $this->helper->route('alf007_topiccalendar_controller'),
 		));
-		if ($this->user->data['is_registered'])
+		/*if ($this->user->data['is_registered'])
 		{
 			$mode = $this->request->variable('mode', '');
 			$forum_id = $this->request->variable('f', 0);
@@ -158,8 +160,7 @@ class main_listener implements EventSubscriberInterface
 			$post_id = $this->request->variable('p', 0);
 			$date = $this->request->variable('date', $this->user->lang['NO_DATE']);
 			$this->functions_topiccal->generate_entry($mode, $forum_id, $topic_id, $post_id, $date);
-		}
-
+		}*/
 	}
 	
 	/**
@@ -251,32 +252,29 @@ class main_listener implements EventSubscriberInterface
 	}
 	
 	/**
-	* Event when we delete forum content
-	*
-	* @event core.acp_manage_forums_delete_content
-	* @var	int		forum_id	Id of the forum
-	* @var	array	errors		Array of errors, should be strings and not
-	*							language key. If this array is not empty,
-	*							The content will not be deleted.
-	* @since 3.1.1
-	*/
-	public function delete_forums_content($event)
+	 * Perform additional actions before forum content deletion
+	 *
+	 * @event core.delete_forum_content_before_query
+	 * @var	array	table_ary	Array of tables from which all rows will be deleted that hold the forum_id
+	 * @since 3.1.5-RC1
+	 */
+	public function delete_forum_content($event)
 	{
-		$forum_id = $event['forum_id'];
-		$this->db->sql_query("DELETE FROM $this->topic_calendar_table_events WHERE forum_id = $forum_id");
+		//	Add our table to delete row for forum with content deleted
+		$event['table_ary'][] = $this->topic_calendar_table_events;
 	}
 	
 	/**
-	* Event after topics are moved to another forum
-	*
-	* @event core.move_topics
-	* @var	array	topic_ids	Topics moving
-	* @var	int	forum_id	Id of the new forum parent
-	* @since 3.1.2
-	*/
+	 * Perform additional actions before topics move
+	 *
+	 * @event core.move_topics_before_query
+	 * @var	array	table_ary	Array of tables from which forum_id will be updated for all rows that hold the moved topics
+	 * @since 3.1.5-RC1
+	 */
 	public function move_topics($event)
 	{
-		$this->functions_topiccal->move_event($event['forum_id'], $event['topic_ids']);
+		//	Add our table to update row for topics moved
+		$event['table_ary'][] = $this->topic_calendar_table_events;
 	}
 	
 	/**
@@ -300,15 +298,98 @@ class main_listener implements EventSubscriberInterface
 	}
 	
 	/**
-	* Event when we delete topics
-	*
-	* @event core.delete_topics
-	* @var	array	topic_ids	Array of topic Id to be deleted
-	* @since 3.1.2
-	*/
+	 * Perform additional actions before topic(s) deletion
+	 *
+	 * @event core.delete_topics_before_query
+	 * @var	array	table_ary	Array of tables from which all rows will be deleted that hold a topic_id occuring in topic_ids
+	 * @var	array	topic_ids	Array of topic ids to delete
+	 * @since 3.1.4-RC1
+	 */
 	public function delete_topics($event)
 	{
-		$this->db->sql_query("DELETE FROM $this->topic_calendar_table_events WHERE " . $this->db->sql_in_set('topic_id', $event['topic_ids']));
+		//	Add our table to delete row for deleted topic
+		$event['table_ary'][] = $this->topic_calendar_table_events;
+	}
+
+	/**
+	* This event allows you to modify template variables for the posting screen
+	*
+	* @event core.posting_modify_template_vars
+	* @var	array	post_data	Array with post data
+	* @var	array	moderators	Array with forum moderators
+	* @var	string	mode		What action to take if the form is submitted
+	*				post|reply|quote|edit|delete|bump|smilies|popup
+	* @var	string	page_title	Title of the mode page
+	* @var	bool	s_topic_icons	Whether or not to show the topic icons
+	* @var	string	form_enctype	If attachments are allowed for this form
+	*				"multipart/form-data" or empty string
+	* @var	string	s_action	The URL to submit the POST data to
+	* @var	string	s_hidden_fields	Concatenated hidden input tags of posting form
+	* @var	int	post_id		ID of the post
+	* @var	int	topic_id	ID of the topic
+	* @var	int	forum_id	ID of the forum
+	* @var	bool	submit		Whether or not the form has been submitted
+	* @var	bool	preview		Whether or not the post is being previewed
+	* @var	bool	save		Whether or not a draft is being saved
+	* @var	bool	load		Whether or not a draft is being loaded
+	* @var	bool	cancel		Whether or not to cancel the form (returns to
+	*				viewtopic or viewforum depending on if the user
+	*				is posting a new topic or editing a post)
+	* @var	array	error		Any error strings; a non-empty array aborts
+	*				form submission.
+	*				NOTE: Should be actual language strings, NOT
+	*				language keys.
+	* @var	bool	refresh		Whether or not to retain previously submitted data
+	* @var	array	page_data	Posting page data that should be passed to the
+	*				posting page via $template->assign_vars()
+	* @var	object	message_parser	The message parser object
+	* @since 3.1.0-a1
+	* @change 3.1.0-b3 Added vars post_data, moderators, mode, page_title,
+	*		s_topic_icons, form_enctype, s_action, s_hidden_fields,
+	*		post_id, topic_id, forum_id, submit, preview, save, load,
+	*		delete, cancel, refresh, error, page_data, message_parser
+	* @change 3.1.2-RC1 Removed 'delete' var as it does not exist
+	*/
+	public function posting_modify_template($event)
+	{	// Insert our editor options tab
+		$this->user->add_lang_ext('alf007/topiccalendar', 'controller');
+		$calendar_data = $this->functions_topiccal->generate_entry($event['mode'], $event['forum_id'], $event['topic_id'], $event['post_id'], $this->user->lang['NO_DATE']);
+		if (is_array($calendar_data))
+		{
+			$template_data = $event['page_data'];
+			array_merge($template_data, $calendar_data);
+			$event['page_data'] = $template_data;
+		}
+	}
+
+	/**
+	 * This event allows you to define errors before the post action is performed
+	 *
+	 * @event core.posting_modify_submission_errors
+	 * @var	array	post_data	Array with post data
+	 * @var	string	mode		What action to take if the form is submitted
+	 *				post|reply|quote|edit|delete|bump|smilies|popup
+	 * @var	string	page_title	Title of the mode page
+	 * @var	int	post_id		ID of the post
+	 * @var	int	topic_id	ID of the topic
+	 * @var	int	forum_id	ID of the forum
+	 * @var	bool	submit		Whether or not the form has been submitted
+	 * @var	array	error		Any error strings; a non-empty array aborts form submission.
+	 *				NOTE: Should be actual language strings, NOT language keys.
+	 * @since 3.1.0-RC5
+	 */
+	public function posting_modify_submission($event)
+	{
+		$this->user->add_lang_ext('alf007/topiccalendar', 'controller');
+		//	Insert Calendar input data to submit
+		$data = $event['post_data'];
+		$data['cal_date'] = $this->request->variable('cal_date', $this->user->lang['NO_DATE']);
+		$data['interval_date'] = $this->request->variable('cal_interval_date', false);
+		$data['date_end'] = $this->request->variable('cal_date_end', $this->user->lang['NO_DATE']);
+		$data['repeat_always'] = $this->request->variable('cal_repeat_always', false);
+		$data['cal_interval'] = $this->request->variable('cal_interval', 1);
+		$data['interval_unit'] = $this->request->variable('cal_interval_units', 0);
+		$event['post_data'] = $data;
 	}
 	
 	/**
@@ -335,27 +416,21 @@ class main_listener implements EventSubscriberInterface
 	*/
 	public function submit_post_after($event)
 	{
-		$data = $event['data'];
-		$date = $this->request->variable('date', $user->lang['NO_DATE']);
-		$repeat = 1;
-		// get the ending date and interval information
-		$interval_date = $this->request->variable('interval_date', false);
-		$date_end = $this->request->variable('date_end', $user->lang['NO_DATE']);
-		$repeat_always = $this->request->variable('repeat_always', false);
-		$interval = $this->request->variable('interval', 1);
-		$interval_units = $this->request->variable('interval_units', 0);
+		$this->user->add_lang_ext('alf007/topiccalendar', 'controller');
+		// retrieve calendar data from post data
+		$data = $event['post_data'];
 		$this->functions_topiccal->submit_event(
 				$event['mode'],
 				$event['forum_id'],
-				$data['topic_id'],
+				$event['data']['topic_id'],
 				$event['post_id'],
-				$date,
-				$repeat,
-				$interval_date,
-				$date_end,
-				$repeat_always,
-				$interval,
-				$interval_units
+				$data['cal_date'],
+				1,
+				$data['interval_date'],
+				$data['date_end'],
+				$data['repeat_always'],
+				$data['cal_interval'],
+				$data['interval_unit']
 		);
 	}
 	
@@ -370,9 +445,7 @@ class main_listener implements EventSubscriberInterface
 	public function modify_topicrow($event)
 	{
 		$topic_row = $event['topic_row'];
-		$topic_row[] = array (
-			'EVENT' => $this->functions_topiccal->show_event($topic_row['topic_id'], 0)
-		);
+		$topic_row['EVENT'] = $this->functions_topiccal->show_event($topic_row['TOPIC_ID'], 0);
 		$event['topic_row'] = $topic_row;
 	}
 	
@@ -399,18 +472,18 @@ class main_listener implements EventSubscriberInterface
 	public function modify_post_row($event)
 	{
 		$post_row = $event['post_row'];
-		$post_row[] = array (
-			'EVENT'		 => $this->functions_topiccal->show_event($event['topic_data']['topic_id'], $event['row']['post_id']),
-		);
+		$post_row['EVENT'] = $this->functions_topiccal->show_event($event['topic_data']['topic_id'], $event['row']['post_id']);
 		$event['post_row'] = $post_row;
 	}
 
 	/**
-	 * Display a mini calendar
-	 * 
-	 * @param unknown $event
-	 */	
-	public function display_mini_calendar($event)
+	* Modify the page title and load data for the index
+	*
+	* @event core.index_modify_page_title
+	* @var	string	page_title		Title of the index page
+	* @since 3.1.0-a1
+	*/
+	public function modify_page_title($event)
 	{
 		$month = $this->request->variable('month', 0);
 		$year = $this->request->variable('year', 0);

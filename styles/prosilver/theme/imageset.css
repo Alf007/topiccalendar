@@ -25,8 +25,18 @@ span.imageset {
 	padding-left: 12px;
 	padding-top: 12px;
 }
+.imageset.icon-calendar {
+	background-image: url("images/icon_calendar.gif");
+	padding-left: 18px;
+	padding-top: 15px;
+	vertical-align: middle;
+}
 .icon-calendar {
 	background-image: url('images/icon_calendar.gif');
+}
+.icon-mini-calendar {
+	background-image: url('images/icon_mini_calendar.gif');
+	padding-left: 16px;
 }
 .icon_double_left_arrow {
 	background-image: url('images/icon_double_left_arrow.gif');
@@ -42,11 +52,6 @@ span.imageset {
 	background-image: url('images/icon_left_arrow.gif');
 	padding-left: 20px;
 	padding-top: 19px;
-}
-.icon_mini_calendar {
-	background-image: url('images/icon_mini_calendar.gif');
-	padding-left: 12px;
-	padding-top: 13px;
 }
 .icon_right_arrow {
 	background-image: url('images/icon_right_arrow.gif');

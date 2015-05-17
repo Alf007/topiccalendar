@@ -31,7 +31,7 @@ $lang = array_merge($lang, array(
 	'EVENTS_FORUM'		=> 'Autoriser les évènements de Calendrier',
 
 	'DATE_SQL_FORMAT'	=> '%W %e %M %Y',	// This should be changed to the default date format for SQL for your language
-	'DATE_INPUT_FORMAT'	=> 'd/m/y',			// Requires 'd', 'm', and 'y' and a punctuation delimiter, order can change
+	'DATE_INPUT_FORMAT'	=> 'd/m/Y',			// Requires 'd', 'm', and 'y' and a punctuation delimiter, order can change
 
 	'INTERVAL'	=> array(
 		'0'		=> 'jour',
@@ -52,7 +52,8 @@ $lang = array_merge($lang, array(
 	'CLEAR_DATE'			=> 'Supprimer Date',
 	'NO_DATE'				=> 'Aucune',
 	'SELECT_START_DATE'		=> 'Veuillez sélectionner une Date de Début', // must escape ' as \\\' for javascript
-	'CALENDAR_EVENT'		=> 'Evènement Calendrier :',
+	'CALENDAR_EVENT_TITLE'	=> 'Evènement Calendrier',
+	'CALENDAR_EVENT'		=> 'Evènement Calendrier : ',
 	'SEL_INTERVAL'			=> 'Intervalle :',
 	'CALENDAR_REPEAT'		=> 'Répéter :',
 	'DATE_SELECTOR_TITLE'	=> 'Sélection de Date',

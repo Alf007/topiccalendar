@@ -1,0 +1,23 @@
+a.event {outline:none; }
+a.event strong {line-height:30px;}
+a.event:hover {text-decoration:none;} 
+a.event div {
+    z-index:10;display:none; padding:14px 20px;
+    margin-top:-30px; margin-left:0;
+    width:300px; line-height:16px;
+}
+a.event:hover div {
+    display:inline; position:absolute; color:#111;
+    border:1px solid #DCA; background:#fffAF0;
+}
+.callout {
+	background-image: url('images/callout.gif');
+	z-index:20;position:absolute;top:30px;border:0;left:-12px;
+}
+    
+/*CSS3 extras*/
+a.event div
+{
+    border-radius:4px;
+    box-shadow: 5px 5px 8px #CCC;
+}

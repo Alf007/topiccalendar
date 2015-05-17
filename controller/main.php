@@ -160,7 +160,7 @@ class main
 				$this->template->assign_block_vars('day_infos.date_event', array(
 						'POPUP'				=> $cal_days[$day]['events'][$e]['event'],
 						'U_EVENT'			=> $cal_days[$day]['events'][$e]['link'],
-						'U_EVENT_END'		=> $cal_days[$day]['events'][$e]['can_read'] ? '</a>' : '</i>', 
+						'U_EVENT_END'		=> $cal_days[$day]['events'][$e]['end_event'], 
 					)
 				);
 			}
@@ -345,25 +345,28 @@ class main
 					}
 				}
 			}
-			
 			$sql_array = array(
-				'SELECT'	=> 'e.*, t.*, pt.post_text, pt.bbcode_uid, pt.bbcode_bitfield' . $this->cal_auth_read_sql,
+				'SELECT'	=> 'e.*, t.*' . $this->cal_auth_read_sql,
 				'FROM'		=> array(
 					$this->topic_calendar_table_events	=> 'e',
 					TOPICS_TABLE		=> 't',
 					FORUMS_TABLE		=> 'f',
-					POSTS_TABLE			=> 'pt',
 				),
 				'WHERE'		=> 	'e.forum_id = f.forum_id 
 					AND f.forum_id IN (' . $this->enabled_forum_ids . ') 
-					AND e.topic_id = t.topic_id
-					AND pt.post_id = t.topic_first_post_id ' .
+					AND e.topic_id = t.topic_id ' .
 					$this->cal_auth_sql . '
 					AND e.year = ' . (int)$this->monthView['year'] . '
 					AND e.month = ' . (int)$this->monthView['month'] . '
 					AND e.day = ' . (int)$cal_this_day,
 				'ORDER_BY'	=> 'e.year ASC, e.month ASC, e.day ASC'
 			);
+			if (!$for_minical)
+			{
+				$sql_array['SELECT'] .= ', pt.post_text, pt.bbcode_uid, pt.bbcode_bitfield';
+				$sql_array['FROM'][POSTS_TABLE] = 'pt';
+				$sql_array['WHERE'] .= ' AND pt.post_id = t.topic_first_post_id';
+			}
 			$sql = $this->db->sql_build_query('SELECT', $sql_array);
 			$result = $this->db->sql_query($sql);
 			$has_event = false;
@@ -382,7 +385,7 @@ class main
 					{
 						$forum_id = $row['forum_id'];
 						$can_view = $this->auth->acl_get('f_list', $forum_id);
-						$cal_days[$a_day]['events'][$event]['can_read'] = $can_view && $this->auth->acl_get('f_read', $forum_id); 
+						$can_read = $can_view && $this->auth->acl_get('f_read', $forum_id); 
 						$topic_id = $row['topic_id'];
 						
 						// prepare the first post text if it has not already been cached
@@ -422,7 +425,8 @@ class main
 						$topic_text = strlen($row['topic_title']) > 148 ? substr($row['topic_title'], 0, 147) . '...' : $row['topic_title'];
 		
 						$cal_days[$a_day]['events'][$event]['event'] = isset($topicCache[$topic_id]['first_post']) ? $topicCache[$topic_id]['first_post'] : '';
-						$cal_days[$a_day]['events'][$event]['link'] = ($cal_days[$a_day]['events'][$event]['can_read'] ? '<a href="' . $topicCache[$topic_id]['topic_url'] . "\">" : '<i>') . $topic_text;
+						$cal_days[$a_day]['events'][$event]['link'] = ($can_read ? '<a class="event" href="' . $topicCache[$topic_id]['topic_url'] . "\">" : '<i>') . $topic_text;
+						$cal_days[$a_day]['events'][$event]['end_event'] = $can_read ? '</a>' : '</i>';
 					}
 				}
 				$event ++;

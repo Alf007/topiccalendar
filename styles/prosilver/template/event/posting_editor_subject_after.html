@@ -1,0 +1,97 @@
+		<!-- IF S_SHOW_CALENDAR_BOX -->
+<script type="text/javascript">
+// <![CDATA[
+var calendarFormat = '{CAL_DATE_FORMAT}';
+var calendarMonths = new Array({CAL_MONTH_LIST});
+var calendarWeekdaysShort = new Array({CAL_WEEKDAY_SHORT_LIST});
+var calendarWeekdays = new Array({CAL_WEEKDAY_LIST});
+var weekday_start = {S_WEEKDAY_START};
+
+var insert_id = 'date_picker';
+
+var today = new Date();
+var day = today.getDate();
+var month = today.getMonth();
+var year  = y2k(today.getYear());
+
+var currentDay = day;
+var currentMonth = month;
+var currentYear = year;
+
+var targetDateField;
+
+function y2k(number)
+{
+	return (number < 1000) ? number + 1900 : number; 
+}
+
+function select_date(formField)
+{
+	// get the reference to the target element and setup the date
+	targetDateField = formField;
+	dateString = targetDateField.value;
+	if (dateString != '')
+	{
+		// convert the user format of the date into something we can parse to make a javascript Date object
+		// we need to pad with placeholders to get the rigth offset
+		cf = calendarFormat.replace(/m/i, 'mm').replace(/d/i, 'dd').replace(/Y/i, 'yyyy');
+		cf_yOffset = cf.indexOf('y');
+		cf_mOffset = cf.indexOf('m');
+		cf_dOffset = cf.indexOf('d');
+		today = new Date(dateString.substring(cf_yOffset, cf_yOffset + 4), dateString.substring(cf_mOffset, cf_mOffset + 2) - 1, dateString.substring(cf_dOffset, cf_dOffset + 2));
+		if ((today == "Invalid Date") || (isNaN(today)))
+		{
+   			today = new Date();
+		}
+	} else
+	{
+		today = new Date();
+	}
+	day = today.getDate();
+	month = today.getMonth();
+	year  = y2k(today.getYear());
+	fill_div(insert_id, build_calendar(month, day, year));
+	fill_calendar(month, year);
+	document.getElementById(insert_id).style.display = 'block';
+}
+
+function fill_calendar(month, year)
+{
+	for (i = 1; i <= calendarDays[month]; i++)
+	{
+		fill_day(i, '<a href="javascript: void(0);" onclick="sendDate(' + (month + 1) + ', ' + i + ', ' + year + ');" title="' + formatDate(month + 1, i, year) + '">' + i + '</a>');
+	}	
+}
+
+function sendDate(month, day, year) 
+{
+	targetDateField.value = formatDate(month, day, year);
+	var dest = document.getElementById(insert_id);
+	dest.style.display = 'none';
+}
+
+// ]]>
+</script>
+		<dl style="clear: left;">
+			<dt><label for="subject">{L_CALENDAR_EVENT}</label></dt>
+			<dd>
+				<div id="date_picker" style="display: none;">
+				</div>
+				<a href="javascript: void(0);" onClick="select_date(document.forms[form_name].cal_date);" title="{L_DATE_SELECTOR_TITLE}"><span class="imageset icon-calendar"></span><input type="text" class="inputbox autowidth" id="cal_date" name="cal_date" size="10" maxlength="10" onFocus="this.blur();" value="{CAL_DATE}" title="{L_EVENT_START}"></a>
+				<input type="button" class="button2" onClick="this.form.cal_date.value = '{CAL_NO_DATE}'; this.form.cal_date_end.value = '{CAL_NO_DATE}';" value="{L_CLEAR_DATE}" />
+				<input type="checkbox" name="cal_interval_date" value="1" onClick="if (document.getElementById) { toggle_cal_form_advanced = document.getElementById('cal_form_advanced').style; } else { alert('Upgrade your browser!'); return; } if (toggle_cal_form_advanced.display == 'none') { toggle_cal_form_advanced.display = ''; } else { toggle_cal_form_advanced.display = 'none'; }" {CAL_ADVANCED_FORM_ON}/> {L_CALENDAR_ADVANCED}
+			</dd>
+		</dl>
+		<dl id="cal_form_advanced" style="display: {CAL_ADVANCED_FORM};">
+			<dt><label for="cal_date_end">{L_EVENT_END}:</label></dt>
+			<dd>
+				<a href="javascript: void(0);" onClick="select_date(document.forms[form_name].cal_date_end);" title="{L_DATE_SELECTOR_TITLE}"><span class="imageset icon-calendar"></span><input type="text" class="inputbox autowidth" id="cal_date_end" name="cal_date_end" size="10" maxlength="10" onFocus="this.blur();" value="{CAL_DATE_END}" title="{L_EVENT_END}"></a>
+				<input type="button" class="button2" onClick="this.form.cal_date_end.value = '{CAL_NO_DATE}';" value="{L_CLEAR_DATE}" />
+			</dd>
+			<dd>
+				<input type="text" class="inputbox autowidth" name="cal_interval" value="{CAL_INTERVAL}" size="3" />
+			 	<select class="select autowidth" name="cal_interval_units" title="{L_SEL_INTERVAL}">{CAL_INTERVAL_UNIT_OPTIONS}</select>
+			 	<input type="checkbox" name="cal_repeat_always" value="1" onClick="if (this.checked) { this.form.cal_date_end.value = '{CAL_NO_DATE}' }" {CAL_REPEAT_ALWAYS}/> {L_CAL_REPEAT_FOREVER}
+			</dd>
+		</dl>
+		<!-- ENDIF -->

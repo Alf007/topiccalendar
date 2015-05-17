@@ -1,9 +1,3 @@
-/* Topic Calendar styles for posting calendar
-*/
-
-#topic-calendar-panel img, #topic-calendar-panel select {
-	vertical-align: middle;
-}
 ol {
 	list-style: none;
 }
@@ -15,9 +9,6 @@ ol {
 	padding-left: 0.25em;
 	text-align: center;
 }
-.calendar li a {
-	display: block;
-}
 .calendar li {
 	width: 2.3em;
 	height: 2.3em;
@@ -26,14 +17,14 @@ ol {
 	display: inline; /* For IE */
 }
 .calendar li a {
-	display: block;
+	display: inline;
 	width: 2.3em;
 	height: 1.8em;
 	padding-top: 0.5em;
 	background-position: bottom right;
 }
 .monthyear li {
-	display: block;
+	display: inline;
 	height: 2em;
 	width: 12em;
 }
@@ -64,3 +55,10 @@ ol {
 .thursdaystart .firstday { margin-left: 10.1em; }
 .fridaystart .firstday { margin-left: 12.6em; }
 .saturdaystart .firstday { margin-left: 15.1em; }
+
+.prev_arrow {
+	background-image: url('images/left_arrow.gif');
+}
+.next_arrow {
+	background-image: url('images/right_arrow.gif');
+}
