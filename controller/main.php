@@ -325,7 +325,7 @@ class main
 						}
 						if ($cal_days[$a_day]['birthdays'] == '')
 						{
-							$cal_days[$a_day]['birthdays'] = '<span class="username-coloured">' . $this->user->lang['HAPPY'] . '</span>';
+							$cal_days[$a_day]['birthdays'] = '<span class="username-coloured">' . $this->user->lang['BIRTHDAYS'] . $this->user->lang['COLON'] . '</span>';
 						} else
 						{
 							$cal_days[$a_day]['birthdays'] .= ', ';

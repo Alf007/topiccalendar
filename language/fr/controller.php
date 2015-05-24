@@ -53,12 +53,9 @@ $lang = array_merge($lang, array(
 	'NO_DATE'				=> 'Aucune',
 	'SELECT_START_DATE'		=> 'Veuillez sélectionner une Date de Début', // must escape ' as \\\' for javascript
 	'CALENDAR_EVENT_TITLE'	=> 'Evènement Calendrier',
-	'CALENDAR_EVENT'		=> 'Evènement Calendrier : ',
-	'SEL_INTERVAL'			=> 'Intervalle :',
-	'CALENDAR_REPEAT'		=> 'Répéter :',
+	'SEL_INTERVAL'			=> 'Intervalle',
+	'CALENDAR_REPEAT'		=> 'Répéter',
 	'DATE_SELECTOR_TITLE'	=> 'Sélection de Date',
-	'HAPPY'					=> 'Joyeux Anniversaire(s)&nbsp;: ',
-	'EVENT'					=> 'Evènement(s) :',
 
 	//	Mini cal
 	'MINI_CAL_EVENTS'		=> 'Evènements à venir',

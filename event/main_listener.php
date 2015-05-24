@@ -158,15 +158,6 @@ class main_listener implements EventSubscriberInterface
 		$this->template->assign_vars(array(
 			'U_TOPIC_CALENDAR'	=> $this->helper->route('alf007_topiccalendar_controller'),
 		));
-		/*if ($this->user->data['is_registered'])
-		{
-			$mode = $this->request->variable('mode', '');
-			$forum_id = $this->request->variable('f', 0);
-			$topic_id = $this->request->variable('t', 0);
-			$post_id = $this->request->variable('p', 0);
-			$date = $this->request->variable('date', $this->user->lang['NO_DATE']);
-			$this->functions_topiccal->generate_entry($mode, $forum_id, $topic_id, $post_id, $date);
-		}*/
 	}
 	
 	/**
@@ -357,9 +348,9 @@ class main_listener implements EventSubscriberInterface
 	* @change 3.1.2-RC1 Removed 'delete' var as it does not exist
 	*/
 	public function posting_modify_template($event)
-	{	// Insert our editor options tab
+	{
 		$this->user->add_lang_ext('alf007/topiccalendar', 'controller');
-		$calendar_data = $this->functions_topiccal->generate_entry($event['mode'], $event['forum_id'], $event['topic_id'], $event['post_id'], $this->user->lang['NO_DATE']);
+		$calendar_data = $this->functions_topiccal->generate_entry($event['post_data'], $event['mode'], $event['forum_id'], $event['topic_id'], $event['post_id']);
 		if (is_array($calendar_data))
 		{
 			$template_data = $event['page_data'];
@@ -450,8 +441,9 @@ class main_listener implements EventSubscriberInterface
 	*/
 	public function modify_topicrow($event)
 	{
+		$this->user->add_lang_ext('alf007/topiccalendar', 'controller');
 		$topic_row = $event['topic_row'];
-		$topic_row['EVENT'] = $this->functions_topiccal->show_event($topic_row['TOPIC_ID'], 0);
+		$topic_row['EVENT_DATE'] = $this->functions_topiccal->show_event($topic_row['TOPIC_ID'], 0);
 		$event['topic_row'] = $topic_row;
 	}
 	
@@ -477,8 +469,9 @@ class main_listener implements EventSubscriberInterface
 	*/
 	public function modify_post_row($event)
 	{
+		$this->user->add_lang_ext('alf007/topiccalendar', 'controller');
 		$post_row = $event['post_row'];
-		$post_row['EVENT'] = $this->functions_topiccal->show_event($event['topic_data']['topic_id'], $event['row']['post_id']);
+		$post_row['EVENT_DATE'] = $this->functions_topiccal->show_event($event['topic_data']['topic_id'], $event['row']['post_id']);
 		$event['post_row'] = $post_row;
 	}
 
