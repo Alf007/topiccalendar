@@ -19,6 +19,7 @@ services:
     alf007.topiccalendar.listener:
         class:  alf007\topiccalendar\event\main_listener
         arguments:
+            - @auth
             - @config
             - @dbal.conn
             - @controller.helper

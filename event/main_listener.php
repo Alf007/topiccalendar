@@ -39,9 +39,13 @@ class main_listener implements EventSubscriberInterface
 			'core.viewforum_modify_topicrow'			=> 'modify_topicrow',
 			'core.viewtopic_modify_post_row'			=> 'modify_post_row',
 			'core.index_modify_page_title'				=> 'modify_page_title',
+			'core.search_modify_param_before'			=> 'modify_search_param',
 		);
 	}
 
+	/** @var \phpbb\auth\auth */
+	protected $auth;
+	
 	/* @var \phpbb\config\config */
 	protected $config;
 	
@@ -74,6 +78,7 @@ class main_listener implements EventSubscriberInterface
 	/**
 	* Constructor
 	*
+	* @param \phpbb\auth\auth				   $auth
 	* @param \phpbb\config\config			   $config
 	* @param \phpbb\db\driver\driver_interface  $db
 	* @param \phpbb\controller\helper	$helper		Controller helper object
@@ -85,8 +90,9 @@ class main_listener implements EventSubscriberInterface
 	* @param string $table_events  extension events table name
 	* @access public
 	*/
-	public function __construct(\phpbb\config\config $config, \phpbb\db\driver\driver_interface $db, \phpbb\controller\helper $helper, \phpbb\request\request_interface $request, \phpbb\template\template $template, \phpbb\user $user, $phpEx, $table_config, $table_events, \alf007\topiccalendar\controller\main $tc_functions)
+	public function __construct(\phpbb\auth\auth $auth, \phpbb\config\config $config, \phpbb\db\driver\driver_interface $db, \phpbb\controller\helper $helper, \phpbb\request\request_interface $request, \phpbb\template\template $template, \phpbb\user $user, $phpEx, $table_config, $table_events, \alf007\topiccalendar\controller\main $tc_functions)
 	{
+		$this->auth = $auth;
 		$this->config = $config;
 		$this->db = $db;
 		$this->helper = $helper;
@@ -488,5 +494,63 @@ class main_listener implements EventSubscriberInterface
 		$month = $this->request->variable('month', 0);
 		$year = $this->request->variable('year', 0);
 		$this->tc_functions->display_mini_calendar($month, $year);	
+	}
+	
+	/**
+	* Event to modify the SQL parameters before pre-made searches
+	*
+	* @event core.search_modify_param_before
+	* @var	string	keywords		String of the specified keywords
+	* @var	array	sort_by_sql		Array of SQL sorting instructions
+	* @var	array	ex_fid_ary		Array of excluded forum ids
+	* @var	array	author_id_ary	Array of exclusive author ids
+	* @var	string	search_id		The id of the search request
+	* @since 3.1.3-RC1
+	*/
+	public function modify_search_param($event)
+	{
+		global $phpbb_container;
+
+		if ($event['search_id'] != 'cal_events')
+			return;
+		$d = $this->request->variable('d', '');
+		$date = $this->user->create_datetime($d);
+		$ex_fid_ary = $event['ex_fid_ary'];
+		//	Build our query and get our own result
+		$phpbb_content_visibility = $phpbb_container->get('content.visibility');
+		$m_approve_topics_fid_sql = $phpbb_content_visibility->get_global_visibility_sql('topic', $ex_fid_ary, 't.');
+
+		$auth_view_forums = implode(', ', array_keys($this->auth->acl_getf('f_list', true)));
+		//	Control viewable links for queries
+		$cal_auth_sql = ($auth_view_forums != '') ? ' AND t.forum_id IN (' . $auth_view_forums . ') ' : '';
+
+		// get the events
+		$sql_array = array(
+				'SELECT'	=> 'e.*, t.topic_title',
+				'FROM'		=> array( 
+					$this->topic_calendar_table_events	=> 'e',
+					TOPICS_TABLE		=> 't',
+				),
+				'WHERE'		=> 'e.topic_id = t.topic_id
+					AND e.year = ' . $date->format('Y') . '
+					AND e.month = ' . $date->format('n') . '
+					AND e.day = ' . $date->format('j') . $cal_auth_sql . '
+					AND ' . $m_approve_topics_fid_sql . '
+					' . ((sizeof($ex_fid_ary)) ? 'AND ' . $this->db->sql_in_set('t.forum_id', $ex_fid_ary, true) : ''),
+		);
+		$sql = $this->db->sql_build_query('SELECT', $sql_array);
+		$result = $this->db->sql_query_limit($sql, 1001);
+		while ($row = $this->db->sql_fetchrow($result))
+		{
+			$id_ary[] = (int) $row['topic_id'];
+		}
+		$this->db->sql_freeresult($result);
+		//	Hack, inserting our own result array
+		$event['id_ary'] = $id_ary;
+		$event['show_results'] = 'topics';
+		$sort_by_sql = $event['sort_by_sql'];
+		$sort_by_sql['t'] = 't.topic_last_post_time';
+		$sort_by_sql['s'] = 't.topic_title';
+		$event['sort_by_sql'] = $sort_by_sql; 
 	}
 }
