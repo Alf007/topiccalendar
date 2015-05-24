@@ -283,8 +283,6 @@ class main
 			
 		$topicCache = array();
 		// output the days for the current month 
-		// if CAL_DATE_SEARCH = POSTS then hyperlink any days which have already past
-		// if CAL_DATE_SEARCH = EVENTS then hyperkink any which have events
 		$cal_days = array();
 		for ($a_day = 0; $a_day < $this->monthView['numDays']; $a_day++) 
 		{
@@ -356,9 +354,14 @@ class main
 					AND f.forum_id IN (' . $this->enabled_forum_ids . ') 
 					AND e.topic_id = t.topic_id ' .
 					$this->cal_auth_sql . '
-					AND e.year = ' . (int)$this->monthView['year'] . '
+					AND (e.cal_repeat = 1
+					AND (e.year = ' . (int)$this->monthView['year'] . '
 					AND e.month = ' . (int)$this->monthView['month'] . '
-					AND e.day = ' . (int)$cal_this_day,
+					AND e.day = ' . (int)$cal_this_day . '
+					) OR (e.cal_repeat <> 1
+					AND (e.year < ' . (int)$this->monthView['year'] . ' OR e.year = ' . (int)$this->monthView['year'] . ')
+					AND (e.month < ' . (int)$this->monthView['month'] . ' OR e.month = ' . (int)$this->monthView['month'] . ')
+					AND e.day < ' . (int)$cal_this_day . '))',
 				'ORDER_BY'	=> 'e.year ASC, e.month ASC, e.day ASC'
 			);
 			if (!$for_minical)
@@ -372,9 +375,19 @@ class main
 			$has_event = false;
 			$event = 0;
 			while ($row = $this->db->sql_fetchrow($result))
-			{
+			{	// First check if user can read target topic
 				if (array_key_exists('cal_read', $row))
 				{
+					// Second check for repeatable event, current date must be in the intervalle
+					if ($row['cal_repeat'] != 1)
+					{
+						$date = functions_topic_calendar::get_datetime($this->user, $row);
+						$interval = $row['cal_interval'];
+						$interval_unit = $row['interval_unit'];
+						$repeat = $row['cal_repeat'];
+						$date_end = functions_topic_calendar::get_date_end($date, $repeat, $interval, $interval_unit);
+						continue;
+					}
 					$has_event = true;
 					if ($for_minical)
 					{
@@ -445,18 +458,6 @@ class main
 			{
 				$cal_days[$a_day]['day'] = '<abbr title="' . $title . '">' . ( $cal_this_day ) . '</abbr></a>';
 			}
-
-			/*if ($for_minical && MINI_CAL_DATE_SEARCH != 'EVENTS')
-			{
-				$nix_cal_today = mktime(0, 0, 0, $this->monthView['month'], $cal_this_day, $this->monthView['year']);
-				if ($title != '')
-				{
-					$cal_days[$a_day]['day'] = ( $cal_today >= $d_cal_today ) ? '<a href="' . append_sid("{$this->root_path}search.$this->phpEx", "search_id=mini_cal&amp;d=" . $nix_cal_today) . '" alt="' . $title . '" title="' . $title . '">' . ( $cal_this_day ) . '</a>' : '<abbr title="' . $title . '">' . ( $cal_this_day ) . '</abbr></a>';
-				} else
-				{
-					$cal_days[$a_day]['day'] = ( $cal_today >= $d_cal_today ) ? '<a href="' . append_sid("{$this->root_path}search.$this->phpEx", "search_id=mini_cal&amp;d=" . $nix_cal_today) . '">' . ( $cal_this_day ) . '</a>' : $cal_this_day;
-				}
-			}*/
 		}	//	for($a_day)
 
 		$previous_month = $this->user->create_datetime(sprintf('%d-%02d-01', $month == 1 ? $year - 1 : $year, $month == 1 ? 12 : $month - 1));
@@ -481,12 +482,6 @@ class main
 	public function display_mini_calendar($month = 0, $year = 0)
 	{
 		define('DATE_FORMAT', 'Y-m-d H:i:s');
-
-		// Defines what type of search happens when a user clicks on a date in the calendar
-		// can be either:
-		//	  POSTS   - will return all posts posted on that date
-		//	  EVENTS  - will return all events happening on that date
-		define('MINI_CAL_DATE_SEARCH', 'EVENTS');
 
 		//	Get list of forum ids and other configuration infos
 		$sql = 'SELECT * FROM ' . $this->topic_calendar_table_config;

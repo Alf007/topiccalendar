@@ -74,12 +74,13 @@ class functions_topic_calendar
 	/**
 	 * Initialize a datetime from sql row
 	 * 
+	 * @param \phpbb\user
 	 * @param $row from sql select in table topic_calendar_events
 	 * @return \phpbb\datetime
 	 */
-	public function get_datetime($row)
+	public static function get_datetime($user, $row)
 	{
-		return $this->user->create_datetime(sprintf('%d-%02d-%02d %02d:%02d:00', $row['year'], $row['month'], $row['day'], $row['hour'], $row['min']));
+		return $user->create_datetime(sprintf('%d-%02d-%02d %02d:%02d:00', $row['year'], $row['month'], $row['day'], $row['hour'], $row['min']));
 	}
 
 	/**
@@ -91,7 +92,7 @@ class functions_topic_calendar
 	 * @param $interval unit (days, weeks, months or years)
 	 * @return end date
 	 */
-	public function get_date_end($datetime, $repeat, $interval, $interval_unit)
+	public static function get_date_end($datetime, $repeat, $interval, $interval_unit)
 	{
 		// only if the repeat is more than 1 day (meaning it actually repeats) do we get the end date
 		// else it is just a single event
@@ -373,7 +374,7 @@ class functions_topic_calendar
 		$this->db->sql_freeresult($result);
 		if ($row)
 		{	// we found a calendar event, so let's append it
-			$date = $this->get_datetime($row);
+			$date = functions_topic_calendar::get_datetime($this->user, $row);
 			$date_f = $date->format($format);
 			$interval = $row['cal_interval'];
 			$interval_unit = $row['interval_unit'];
@@ -383,7 +384,7 @@ class functions_topic_calendar
 			if ($repeat != 1)
 			{
 				// if this is a repeating or block event (repeat > 1), show end date!
-				$date_end = $this->get_date_end($date, $repeat, $interval, $interval_unit);
+				$date_end = functions_topic_calendar::get_date_end($date, $repeat, $interval, $interval_unit);
 				if ($date_end)
 				{
 					$event['message'] .= ' - <i>' . $date_end->format($format) . '</i>';
@@ -446,7 +447,7 @@ class functions_topic_calendar
 			$this->db->sql_freeresult($result);
 			if ($row)
 			{
-				$dt = $this->get_datetime($row);
+				$dt = functions_topic_calendar::get_datetime($this->user, $row);
 				$date = $dt->format($this->user->lang['DATE_INPUT_FORMAT']);
 				$interval_unit = $row['interval_unit'];
 				$interval = $row['cal_interval'];
@@ -455,7 +456,7 @@ class functions_topic_calendar
 				// else it is just a single event
 				if ($repeat > 1)
 				{
-					$date_end = $this->get_date_end($dt, $repeat, $interval, $interval_unit);
+					$date_end = functions_topic_calendar::get_date_end($dt, $repeat, $interval, $interval_unit);
 					if ($date_end)
 					{
 						$date_end = $date_end->format($this->user->lang['DATE_INPUT_FORMAT']);
