@@ -10,6 +10,7 @@ services:
             - @dbal.conn
             - @content.visibility
             - @controller.helper
+            - @request
             - @template
             - @user
             - %core.root_path%
@@ -26,9 +27,9 @@ services:
             - @request
             - @template
             - @user
+            - %core.root_path%
             - %core.php_ext%
             - %tables.topic_calendar_config%
             - %tables.topic_calendar_events%
-            - @alf007.topiccalendar.controller
         tags:
             - { name: event.listener }

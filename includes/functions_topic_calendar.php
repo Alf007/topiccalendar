@@ -80,7 +80,7 @@ class functions_topic_calendar
 	 */
 	public static function get_datetime($user, $row)
 	{
-		return $user->create_datetime(sprintf('%d-%02d-%02d %02d:%02d:00', $row['year'], $row['month'], $row['day'], $row['hour'], $row['min']));
+		return $user->create_datetime(sprintf('%d-%02d-%02d 00:00:00', substr($row['date'], 0, 4), substr($row['date'], 4, 2), substr($row['date'], 6, 2)));
 	}
 
 	/**
@@ -175,11 +175,7 @@ class functions_topic_calendar
 	public function build_datetime_aray($datetime)
 	{
 		return array(
-			'year' => $datetime->format('Y'),
-			'month' => $datetime->format('n'),
-			'day' => $datetime->format('j'),
-			'hour' => $datetime->format('G'),
-			'min' => $datetime->format('i'),
+			'date' => intval($datetime->format('Ymd')),
 		);
 	}
 	
@@ -317,7 +313,7 @@ class functions_topic_calendar
 			else if ($start_date)
 			{
 				$sql = 'INSERT INTO ' . $this->topic_calendar_table_events . ' ' .
-					$this->db->sql_build_array('INSERT', array_merger(array(
+					$this->db->sql_build_array('INSERT', array_merge(array(
 						'forum_id'  => (int)$forum_id,
 						'topic_id'  => (int)$topic_id,
 						'cal_interval' => $interval,
@@ -560,8 +556,6 @@ class functions_topic_calendar
 	 *
 	 * @param	int topic_id
 	 * @param	int post_id
-	 *			
-	 * @access public
 	 * @return boolean is first post
 	 */
 	public function first_post($topic_id, $post_id)
@@ -587,13 +581,8 @@ class functions_topic_calendar
 	 * is formed this way, or will slash separate the singular and plural words.
 	 * Example: week(s), country/countries
 	 *
-	 * @param string $in_singular
-	 *			singular word
-	 * @param string $in_plural
-	 *			plural word
-	 *			
-	 * @access public
-	 * @author moonbase
+	 * @param string $in_singular singular word
+	 * @param string $in_plural plural word
 	 * @return string combined singular/plural contruct
 	 */
 	public function pluralize($in_singular, $in_plural)
@@ -604,32 +593,41 @@ class functions_topic_calendar
 		}
 		return $in_singular . '/' . $in_plural;
 	}
-	
-	public static function getbirthdays($db, $year)
+
+	/**
+	 * Fill template with week days
+	 */
+	public function apply_weekdays()
 	{
-		$birthdays = array();
-		$sql = 'SELECT *
-					FROM ' . USERS_TABLE . "
-					WHERE user_birthday NOT LIKE '%- 0-%'
-						AND user_birthday NOT LIKE '0-%'
-						AND	user_birthday NOT LIKE '0- 0-%'
-						AND	user_birthday NOT LIKE ''
-						AND user_type IN (" . USER_NORMAL . ', ' . USER_FOUNDER . ')';
-		$result = $db->sql_query($sql);
-		while ($row = $db->sql_fetchrow($result))
+		$weekday = (int)$this->user->lang['WEEKDAY_START'];
+		for ($i = 0; $i < 7; $i++)
 		{
-			$birthdays[] = array(
-					'username'		=> $row['username'],
-					'check_date'	=> $year . '-' . sprintf('%02d', substr($row['user_birthday'], 3, 2)) . '-' . sprintf('%02d', substr($row['user_birthday'], 0, 2)),
-					'birthday' 		=> $row['user_birthday'],
-					'id'		=> $row['user_id'],
-					'show_age'		=> (isset($row['user_show_age'])) ? $row['user_show_age'] : 0,
-					'colour'		=> $row['user_colour']
+			$this->template->assign_block_vars('day_headers', array(
+				'DAY_LONG' => $this->user->lang['datetime'][date('l', strtotime("Sunday +{$weekday} days"))],
+				'DAY_SHORT' => $this->user->lang['datetime'][date('D', strtotime("Sunday +{$weekday} days"))],
+				)
 			);
+			if ($weekday < 6)
+			{
+				$weekday++;
+			} else
+			{
+				$weekday = 0;
+			}
 		}
-		$db->sql_freeresult($result);
-		sort($birthdays);
-		return $birthdays;
+	}
+	
+	public function apply_links($month, $year)
+	{
+		$previous_month = $this->user->create_datetime(sprintf('%04d-%02d-01', $month == 1 ? $year - 1 : $year, $month == 1 ? 12 : $month - 1));
+		$next_month = $this->user->create_datetime(sprintf('%04d-%02d-01', $month == 12 ? $year + 1 : $year, $month == 12 ? 1 : $month + 1));
+		$this->template->assign_vars(array(
+				'S_PREVIOUS_MONTH' => $previous_month->format('F'),
+				'S_NEXT_MONTH' => $next_month->format('F'),
+				'S_PREVIOUS_YEAR'=> $year - 1,
+				'S_NEXT_YEAR'=> $year + 1,
+			)
+		);
 	}
 }
 ?>

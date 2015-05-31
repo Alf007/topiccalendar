@@ -14,6 +14,7 @@ namespace alf007\topiccalendar\event;
 */
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use alf007\topiccalendar\includes\functions_topic_calendar;
+use alf007\topiccalendar\includes\days_info;
 
 /**
 * Event listener
@@ -64,33 +65,34 @@ class main_listener implements EventSubscriberInterface
 	/* @var \phpbb\user */
 	protected $user;
 
+	/** @var string phpBB root path */
+	protected $root_path;
+	
 	/** @var string PHP extension */
 	protected $phpEx;
 
 	protected $topic_calendar_table_config;
 	protected $topic_calendar_table_events;
 	
-	/* @var \alf007\topiccalendar\controller\main */
-	protected $tc_functions;
-	
 	public $functions_topiccal;
 	
 	/**
 	* Constructor
 	*
-	* @param \phpbb\auth\auth				   $auth
-	* @param \phpbb\config\config			   $config
+	* @param \phpbb\auth\auth					$auth
+	* @param \phpbb\config\config				$config
 	* @param \phpbb\db\driver\driver_interface  $db
-	* @param \phpbb\controller\helper	$helper		Controller helper object
+	* @param \phpbb\controller\helper	$helper	Controller helper object
 	* @param \phpbb\request\request_interface   $request		Request variables
 	* @param \phpbb\template\template			$template	Template object
 	* @param \phpbb\user						$user
-	* @param string $phpEx	  php file extension
-	* @param string $table_config  extension config table name
-	* @param string $table_events  extension events table name
+	* @param string							 	$root_path	  phpbb root path
+	* @param string								$phpEx	  php file extension
+	* @param string								$table_config  extension config table name
+	* @param string								$table_events  extension events table name
 	* @access public
 	*/
-	public function __construct(\phpbb\auth\auth $auth, \phpbb\config\config $config, \phpbb\db\driver\driver_interface $db, \phpbb\controller\helper $helper, \phpbb\request\request_interface $request, \phpbb\template\template $template, \phpbb\user $user, $phpEx, $table_config, $table_events, \alf007\topiccalendar\controller\main $tc_functions)
+	public function __construct(\phpbb\auth\auth $auth, \phpbb\config\config $config, \phpbb\db\driver\driver_interface $db, \phpbb\controller\helper $helper, \phpbb\request\request_interface $request, \phpbb\template\template $template, \phpbb\user $user, $root_path, $phpEx, $table_config, $table_events)
 	{
 		$this->auth = $auth;
 		$this->config = $config;
@@ -99,10 +101,10 @@ class main_listener implements EventSubscriberInterface
 		$this->request = $request;
 		$this->template = $template;
 		$this->user = $user;
+		$this->root_path = $root_path;
 		$this->phpEx = $phpEx;
 		$this->topic_calendar_table_config = $table_config;
 		$this->topic_calendar_table_events = $table_events;
-		$this->tc_functions = $tc_functions;
 		$this->functions_topiccal = new functions_topic_calendar($config, $db, $request, $template, $user, $table_config, $table_events);
 	}
 
@@ -486,7 +488,7 @@ class main_listener implements EventSubscriberInterface
 	{
 		$month = $this->request->variable('month', 0);
 		$year = $this->request->variable('year', 0);
-		$this->tc_functions->display_mini_calendar($month, $year);	
+		$this->display_mini_calendar($month, $year);	
 	}
 	
 	/**
@@ -545,5 +547,174 @@ class main_listener implements EventSubscriberInterface
 		$sort_by_sql['t'] = 't.topic_last_post_time';
 		$sort_by_sql['s'] = 't.topic_title';
 		$event['sort_by_sql'] = $sort_by_sql; 
+	}
+
+	/**
+	 * Displaying a mini calendar on site index page
+	 *  
+	 * @param number $month
+	 * @param number $year
+	 */
+	public function display_mini_calendar($month = 0, $year = 0)
+	{
+		define('DATE_FORMAT', 'Y-m-d H:i:s');
+
+		$day_infos = new days_info($this->auth, $this->db, $this->root_path, $this->phpEx, $this->topic_calendar_table_config, $this->topic_calendar_table_events);
+		
+		// setup template
+		$this->template->set_filenames(array(
+				'mini_cal_body' => 'mini_cal_body.html')
+		);
+		$this->template->assign_var('S_IN_MINI_CAL', true);
+		
+		$cal_days = $day_infos->get_days_info($this->user, $year, $month, true);
+
+		$this->template->assign_var('S_MONTH', $day_infos->monthView['monthName']);
+		$this->template->assign_var('S_YEAR', $day_infos->monthView['year']);
+
+		$this->functions_topiccal->apply_weekdays();
+		$this->functions_topiccal->apply_links(intval($day_infos->monthView['month']), intval($day_infos->monthView['year']));
+		
+		$start_day = date('w', mktime(0, 0, 0, $day_infos->monthView['month'], 1, $day_infos->monthView['year'])) - (int)$this->user->lang['WEEKDAY_START'];
+		if ($start_day > 0)
+		{
+			$start_day--;
+			$this->template->assign_var('START_DAY_LINK', true);
+		} else if ($start_day < 0)
+		{
+			$start_day += 7;
+		}
+		for ($i = 0; $i < $start_day; $i++)
+		{
+			$this->template->assign_block_vars('before_first_day', array());
+		}
+		
+		for ($i = 0; $i < count($cal_days); $i ++)
+		{
+			$this->template->assign_block_vars('day_infos', array(
+					'DAY_CLASS' => $cal_days[$i]['class'],
+					'DAY_INFO' => $cal_days[$i]['day'],
+					'DAY_OMO' => $cal_days[$i]['omo'],
+				)
+			);
+		}
+
+		if (($i + $start_day) % 7 != 6)
+		{
+			$this->template->assign_var('END_DAY_LINK', true);
+		}
+
+		$result = $day_infos->get_days_ahead();
+		if ($result)
+		{
+			$short_months = array('Jan', 'Feb', 'Mar', 'Apr',
+				'May_short',	// Short representation of "May". May_short used because in English the short and long date are the same for May.
+				'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec');
+			// ok we've got Topic Calendar
+			// initialise out date formatting patterns
+			$cal_date_pattern = array('/%a/', '/%b/', '/%c/', '/%d/', '/%e/', '/%m/', '/%y/', '/%Y/', '/%H/', '/%k/', '/%h/', '/%l/', '/%i/', '/%s/', '/%p/');
+			// output our events in the given date format for the current language
+			$prev_cal_date = '';
+			$prev_cal_text = '';
+			$prev_cal_url = '';
+			$prev_cal_urltext = '';
+			$prev_cal_multi = 0;
+			while ($row = $this->db->sql_fetchrow($result))
+			{
+				$eventdate = \DateTime::createFromFormat(DATE_FORMAT, sprintf('%d-%02d-%02d 00:00:00', substr($row['date'], 0, 4), substr($row['date'], 4, 2), substr($row['date'], 6, 2)));
+				$cal_date_replace = array( 
+					$this->user->lang['datetime'][date('D', strtotime('Sunday +' . ($eventdate->format('w') - 1) . ' days'))], 
+					$this->user->lang['datetime'][$short_months[$eventdate->format('m') - 1]], 
+					$eventdate->format('m'), 
+					$eventdate->format('d'), 
+					$eventdate->format('d'), 
+					$eventdate->format('m'), 
+					$eventdate->format('y'),
+					$eventdate->format('Y'),
+					$eventdate->format('H'),
+					$eventdate->format('G'),
+					$eventdate->format('h'),
+					$eventdate->format('g'),
+					$eventdate->format('i'),
+					$eventdate->format('s'),
+					$eventdate->format('A')
+				);
+				$cal_date = preg_replace($cal_date_pattern, $cal_date_replace, $this->user->lang['MINI_CAL_DATE_FORMAT']);
+				if ($prev_cal_date != '' && $prev_cal_date != $cal_date)
+				{
+					$this->template->assign_block_vars('events', array(
+									'EVENT_CLASS' => $prev_class,
+									'EVENT_ID' => $prev_cal_id,
+									'EVENT_DATE' => $prev_cal_date,
+									'EVENT_URLTEXT' => $prev_cal_urltext
+								)
+					);
+					$prev_cal_urltext = '';
+				}
+				$prev_class = '';
+				$prev_cal_date = $cal_date;
+				$prev_cal_id = preg_replace($cal_date_pattern, $cal_date_replace, '%Y%m%d');
+				$prev_cal_text = $row['topic_title'];
+				$prev_cal_url = append_sid("{$this->root_path}viewtopic.$this->phpEx", "t={$row['topic_id']}");
+				$see_url = (array_key_exists('cal_read', $row) && $row['cal_read'] == '1');
+				if ($prev_cal_urltext != '')
+				{
+					$prev_cal_urltext .= ', ';
+				}
+				if ($see_url)
+				{
+					$prev_cal_urltext .= '<a href="' . $prev_cal_url . '">' . $prev_cal_text . '</a>';
+				} else
+				{
+					$prev_class = 'noview';
+					if (array_key_exists('forum_name', $row))
+					{
+						$prev_cal_urltext .= $row['forum_name'];
+					}
+				}
+			}	// while($row)
+			if ($prev_cal_date != '')
+			{
+				$this->template->assign_var('HAS_EVENTS', true);
+				$this->template->assign_block_vars('events', array(
+								'EVENT_CLASS' => $prev_class,
+								'EVENT_ID' => $prev_cal_id,
+								'EVENT_DATE' => $prev_cal_date,
+								'EVENT_URLTEXT' => $prev_cal_urltext
+							)
+				);
+			} else
+			{	// no events :(
+				$this->template->assign_var('HAS_EVENTS', false);
+			}
+			$this->db->sql_freeresult($result);
+		} else
+		{
+			$this->template->assign_var('HAS_EVENTS', false);
+		}
+
+		// output our general calendar bits
+		$nextyear = $year;
+		$nextmonth = $month + 1;
+		if ($nextmonth > 12)
+		{
+			$nextmonth = 1;
+			$nextyear++; 
+		}
+		$previousyear = $year;
+		$previousmonth = $month - 1; 
+		if ($previousmonth < 1)
+		{
+			$previousmonth = 12;
+			$previousyear--;
+		}
+		$url_prev_month = append_sid("{$this->root_path}index.$this->phpEx", 'month=' . $previousmonth, '&amp;year=' . $previousyear); 
+		$url_next_month = append_sid("{$this->root_path}index.$this->phpEx", 'month=' . $nextmonth, '&amp;year=' . $nextyear);
+		$this->template->assign_vars(array(
+				'U_TOPIC_CALENDAR' => $this->helper->route('alf007_topiccalendar_controller'),
+				'U_PREV_MONTH' => $url_prev_month,
+				'U_NEXT_MONTH' => $url_next_month,
+				)
+		);
 	}
 }

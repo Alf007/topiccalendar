@@ -38,14 +38,11 @@ class release_1_0_0 extends \phpbb\db\migration\migration
 							'id'	=> array('UINT', null, 'auto_increment'),
 							'forum_id'  => array('UINT', null),
 							'topic_id'  => array('UINT', null),
-							'year' => array('USINT', 0),
-							'month' => array('TINT:2', 0),
-							'day' => array('TINT:2', 0),
-							'hour' => array('TINT:2', 0),
-							'min' => array('TINT:2', 0),
+							'date' => array('UINT:11', null),
 							'cal_interval' => array('TINT:3', 0),
 							'cal_repeat' => array('TINT:3', 0),
 							'interval_unit' => array('TINT:1', 0),
+							'end_date' => array('UINT:11', null),
 					),
 					'PRIMARY_KEY'	=> 'id',
 					'UNIQUE'	=> 'topic_id (topic_id)', 
@@ -94,19 +91,23 @@ class release_1_0_0 extends \phpbb\db\migration\migration
 		while ($row = $this->db->sql_fetchrow($result))
 		{
 			$date = \DateTime::createFromFormat('Y-m-d H:i:s', $row['cal_date']);
+			$end_date = 0;
 			if ($date == FALSE)
 				$date = new \DateTime();
+			elseif ($row['cal_repeat'] > 1)
+			{	// Calculate ending date
+				$date_end = clone $date;
+				$date_end->add(new \DateInterval('P' . sprintf('%d', intval($row['cal_repeat']) * intval($row['cal_interval'])) . substr($row['cal_interval_units'], 0, 1)));
+				$end_date = intval($date_end->format('Ymd'));
+			}
 			$sql = 'INSERT INTO ' . $this->table_prefix . 'topic_calendar_events ' . $this->db->sql_build_array('INSERT', array(
 						'forum_id'  => $row['forum_id'],
 						'topic_id'  => $row['topic_id'],
-						'year' => (int)$date->format('Y'),
-						'month' => (int)$date->format('m'),
-						'day' => (int)$date->format('d'),
-						'hour' => (int)$date->format('H'),
-						'min' => (int)$date->format('i'),
+						'date' => intval($date->format('Ymd')),
 						'cal_interval' => (int)$row['cal_interval'],
 						'cal_repeat' => (int)$row['cal_repeat'],
 						'interval_unit' => array_search($row['cal_interval_units'], $interval_units),
+						'end_date' => $end_date,
 				));
 			$this->sql_query($sql);
 		}
