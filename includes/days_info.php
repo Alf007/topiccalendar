@@ -163,8 +163,7 @@ class days_info
 					AND ((e.cal_repeat = 1
 						AND e.date >= ' . $date_min . ')
 						OR (e.cal_repeat <> 1
-						AND e.end_date >= ' . $date_min . '
-						AND e.end_date <= ' . $date_max . '))',
+						AND e.end_date >= ' . $date_min . '))',
 				'ORDER_BY'	=> 'e.date ASC'
 		);
 		if (!$for_minical)
@@ -177,7 +176,7 @@ class days_info
 		$result = $this->db->sql_query($sql);
 		$events = array();
 		while ($row = $this->db->sql_fetchrow($result))
-		{	// First check if user can read target topic
+		{	// store results
 			$events[] = $row;
 		}
 		$this->db->sql_freeresult($result);
@@ -248,22 +247,22 @@ class days_info
 			$event_index = 0;
 			foreach ($events as $event)
 			{
-				// only events for this day
-				if ($event['date'] != intval($this->monthView['year'] . $this->monthView['month'] . sprintf('%02d', $cal_this_day)))
+				// only events for this day, or within repeated 
+				$this_day = intval($this->monthView['year'] . $this->monthView['month'] . sprintf('%02d', $cal_this_day));
+				if (($event['end_date'] != 0 && ($event['date'] > $this_day || $event['end_date'] < $this_day)) || ($event['end_date'] == 0 && $event['date'] != $this_day)) 
 					continue;
+				if ($event['end_date'] != 0 && $event['cal_interval'] != 1)
+				{
+					// with interval
+					$begin_date = $user->create_datetime($event['date']);
+					$today_date = $user->create_datetime($this_day);
+					$total_days = $today_date->diff($begin_date)->format('%a');
+					if ($total_days % $event['cal_interval'] != 0)
+						continue;
+				}
 				// Check if user can read target topic
 				if (array_key_exists('cal_read', $event))
 				{
-					// Second check for repeatable event, current date must be in the intervalle
-					if ($event['cal_repeat'] != 1)
-					{
-						$date = functions_topic_calendar::get_datetime($user, $event);
-						$interval = $event['cal_interval'];
-						$interval_unit = $event['interval_unit'];
-						$repeat = $event['cal_repeat'];
-						$date_end = functions_topic_calendar::get_date_end($date, $repeat, $interval, $interval_unit);
-						continue;
-					}
 					$has_event = true;
 					if ($for_minical)
 					{
@@ -316,6 +315,9 @@ class days_info
 						$cal_days[$a_day]['events'][$event_index]['event'] = isset($topicCache[$topic_id]['first_post']) ? $topicCache[$topic_id]['first_post'] : '';
 						$cal_days[$a_day]['events'][$event_index]['link'] = ($can_read ? '<a class="event" href="' . $topicCache[$topic_id]['topic_url'] . "\">" : '<i>') . $topic_text;
 						$cal_days[$a_day]['events'][$event_index]['end_event'] = $can_read ? '</a>' : '</i>';
+						$cal_days[$a_day]['events'][$event_index]['block_begin'] = $event['end_date'] != 0 && $event['date'] == $this_day; 
+						$cal_days[$a_day]['events'][$event_index]['block_end'] = $event['end_date'] != 0 && $event['end_date'] == $this_day; 
+						$cal_days[$a_day]['events'][$event_index]['in_block'] = $event['end_date'] != 0 && $event['cal_interval'] == 1 && $event['date'] < $this_day && $event['end_date'] > $this_day; 
 					}
 				}
 				$event_index++;

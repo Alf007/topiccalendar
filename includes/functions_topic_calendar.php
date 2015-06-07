@@ -72,15 +72,15 @@ class functions_topic_calendar
 	}
 
 	/**
-	 * Initialize a datetime from sql row
+	 * Initialize a datetime
 	 * 
 	 * @param \phpbb\user
-	 * @param $row from sql select in table topic_calendar_events
+	 * @param string $date in ISO format (as from DB)
 	 * @return \phpbb\datetime
 	 */
-	public static function get_datetime($user, $row)
+	public static function get_datetime($user, $date)
 	{
-		return $user->create_datetime(sprintf('%d-%02d-%02d 00:00:00', substr($row['date'], 0, 4), substr($row['date'], 4, 2), substr($row['date'], 6, 2)));
+		return $user->create_datetime(sprintf('%d-%02d-%02d 00:00:00', substr($date, 0, 4), substr($date, 4, 2), substr($date, 6, 2)));
 	}
 
 	/**
@@ -90,7 +90,7 @@ class functions_topic_calendar
 	 * @param $repeat number
 	 * @param $interval to repeat
 	 * @param $interval unit (days, weeks, months or years)
-	 * @return end date
+	 * @return phpbb\datetime end date
 	 */
 	public static function get_date_end($datetime, $repeat, $interval, $interval_unit)
 	{
@@ -169,13 +169,14 @@ class functions_topic_calendar
 	/**
 	 * Build array for sql operation on datetime
 	 * 
+	 * @param string date field name
 	 * @param \phpbb\datetime
 	 * @return array (year, month, day, hour, minute)
 	 */
-	public function build_datetime_aray($datetime)
+	public function build_datetime_aray($name, $datetime)
 	{
 		return array(
-			'date' => intval($datetime->format('Ymd')),
+			$name => intval($datetime->format('Ymd')),
 		);
 	}
 	
@@ -189,49 +190,44 @@ class functions_topic_calendar
 	 * @param int		$forum_id		id of the forum
 	 * @param int		$topic_id		id of the topic
 	 * @param int		$post_id		id of the post
-	 * @param string 	$date
-	 * @param int		$repeat
-	 * @param boolean	$interval_date
-	 * @param string 	$date_end
-	 * @param boolean	$repeat_always
-	 * @param int		$interval
-	 * @param int		$interval_unit
+	 * @param array 	$data			date data
 	 *
 	 * @access public
 	 * @return void
 	 */
-	public function submit_event($mode, $forum_id, $topic_id, $post_id, $date, $repeat, $interval_date, $date_end, $repeat_always, $interval, $interval_unit)
+	public function submit_event($mode, $forum_id, $topic_id, $post_id, $data)
 	{
 		// Do nothing for a reply/quote
 		if ($mode == 'reply' || $mode == 'quote')
 		{
 			return;
 		}
+				
+		$repeat = 1;
+		// coax the interval to a positive integer
+		$interval = ($tmp_interval = abs($data['cal_interval'])) ? $tmp_interval : 1;
 		
 		// setup defaults
-		$start_date = $this->user->create_datetime($date);
-		
-		if ($start_date && $interval_date && ($date_end != $this->user->lang['NO_DATE'] || $repeat_always))
+		$start_date = $this->user->create_datetime($data['cal_date']);
+		$end_date = $this->user->create_datetime($data['date_end']);
+		// make sure the end is not before the beginning, if so swap
+		if ($start_date && $end_date && $end_date < $start_date)
 		{
-			// coax the interval to a positive integer
-			$interval = ($tmp_interval = abs($interval)) ? $tmp_interval : 1;
-			if ($repeat_always)
+			$tmp = $end_date;
+			$end_date = $start_date;
+			$start_date = $tmp;
+		}
+		
+		if ($start_date && $data['interval_date'] && ($data['date_end'] != $this->user->lang['NO_DATE'] || $data['repeat_always']))
+		{
+			if ($data['repeat_always'])
 			{
 				$repeat = 0;
 			} else
 			{
-				$end_date = $this->user->create_datetime($date_end);
-				// make sure the end is not before the beginning, if so swap
-				if ($end_date < $start_date)
-				{
-					$tmp = $end_date;
-					$end_date = $start_date;
-					$start_date = $tmp;
-				}
-		
 				// get the number of repeats between the two dates of the interval
 				$inter = $start_date->diff($end_date, true);
-				switch ($interval_unit)
+				switch ($data['interval_unit'])
 				{
 				case 0:	// DAY
 					$repeat = $inter->format('%a') / $interval;
@@ -249,12 +245,22 @@ class functions_topic_calendar
 					$repeat = $inter->format('%y') / $interval;
 					break;
 				}
+				$temp_date = functions_topic_calendar::get_date_end($start_date, $repeat, $interval, $data['interval_unit']);
+				if ($temp_date <= $end_date)
+				{
+					$end_date = $temp_date;
+				}
+				else
+				{
+					$repeat--;
+					$end_date = functions_topic_calendar::get_date_end($start_date, $repeat, $interval, $data['interval_unit']);
+				}
 			}
 		}
 		
 		// if this is a new topic and we can post a date to it (do we have to check this) and
 		// we have specified a date, then go ahead and enter it
-		if ($mode == 'post' && $cal_start_date && $this->forum_check($forum_id))
+		if ($mode == 'post' && $start_date && $this->forum_check($forum_id))
 		{
 			$sql = 'INSERT INTO ' . $this->topic_calendar_table_events . ' ' .
 				 $this->db->sql_build_array('INSERT', array_merge(array(
@@ -262,9 +268,10 @@ class functions_topic_calendar
 							'topic_id'  => (int)$topic_id,
 							'cal_interval' => $interval,
 							'cal_repeat' => $repeat,
-							'interval_unit' => $intercval_units,
+							'interval_unit' => $data['interval_unit'],
 						),
-				 		$this->build_datetime_aray($start_date)
+				 		$this->build_datetime_aray('date', $start_date),
+				 		$this->build_datetime_aray('end_date', $end_date)
 		 		)); 
 			$result = $this->db->sql_query($sql);
 		} // if we are editing a post, we either update, insert or delete, depending on if date is set
@@ -301,10 +308,11 @@ class functions_topic_calendar
 					 	$this->db->sql_build_array('UPDATE', array_merge(array(
 							'cal_interval' => $interval,
 							'cal_repeat' => $repeat,
-							'interval_unit' => $interval_unit
+							'interval_unit' => $data['interval_unit']
 						),
-						$this->build_datetime_aray($start_date))
-						) . ' WHERE ' . $this->db->sql_build_array('SELECT', array(
+						$this->build_datetime_aray('date', $start_date),
+				 		$this->build_datetime_aray('end_date', $end_date)
+						)) . ' WHERE ' . $this->db->sql_build_array('SELECT', array(
 						'topic_id' => (int) $topic_id 
 					));
 					$this->db->sql_query($sql);
@@ -318,10 +326,11 @@ class functions_topic_calendar
 						'topic_id'  => (int)$topic_id,
 						'cal_interval' => $interval,
 						'cal_repeat' => $repeat,
-						'interval_unit' => $interval_unit
+						'interval_unit' => $data['interval_unit']
 					),
-					$this->build_datetime_aray($start_date))
-				);
+					$this->build_datetime_aray('date', $start_date),
+				 	$this->build_datetime_aray('end_date', $end_date)
+				));
 				$this->db->sql_query($sql);
 			}
 			$this->db->sql_freeresult($result);
@@ -370,7 +379,7 @@ class functions_topic_calendar
 		$this->db->sql_freeresult($result);
 		if ($row)
 		{	// we found a calendar event, so let's append it
-			$date = functions_topic_calendar::get_datetime($this->user, $row);
+			$date = functions_topic_calendar::get_datetime($this->user, $row['date']);
 			$date_f = $date->format($format);
 			$interval = $row['cal_interval'];
 			$interval_unit = $row['interval_unit'];
@@ -443,31 +452,39 @@ class functions_topic_calendar
 			$this->db->sql_freeresult($result);
 			if ($row)
 			{
-				$dt = functions_topic_calendar::get_datetime($this->user, $row);
+				$dt = functions_topic_calendar::get_datetime($this->user, $row['date']);
 				$date = $dt->format($this->user->lang['DATE_INPUT_FORMAT']);
 				$interval_unit = $row['interval_unit'];
 				$interval = $row['cal_interval'];
 				$repeat = $row['cal_repeat'];
-				// only if the repeat is more than 1 day (meaning it actually repeats) do we get the end date
-				// else it is just a single event
-				if ($repeat > 1)
+				if (intval($row['end_date']) != 0)
 				{
-					$date_end = functions_topic_calendar::get_date_end($dt, $repeat, $interval, $interval_unit);
-					if ($date_end)
+					$dt = functions_topic_calendar::get_datetime($this->user, $row['end_date']);
+					$date_end = $dt->format($this->user->lang['DATE_INPUT_FORMAT']);
+				}
+				else
+				{
+					// only if the repeat is more than 1 day (meaning it actually repeats) do we get the end date
+					// else it is just a single event
+					if ($repeat > 1)
 					{
-						$date_end = $date_end->format($this->user->lang['DATE_INPUT_FORMAT']);
-					}
-					else
+						$date_end = functions_topic_calendar::get_date_end($dt, $repeat, $interval, $interval_unit);
+						if ($date_end)
+						{
+							$date_end = $date_end->format($this->user->lang['DATE_INPUT_FORMAT']);
+						}
+						else
+						{
+							$date_end = $this->user->lang['NO_DATE'];
+						}
+					} else if ($repeat == 1)
 					{
-						$date_end = $this->user->lang['NO_DATE'];
+						$interval = 1;
+						$interval_unit = 0;
+					} else
+					{
+						$repeat_always = 'checked="checked"';
 					}
-				} else if ($repeat == 1)
-				{
-					$interval = 1;
-					$interval_unit = 0;
-				} else
-				{
-					$repeat_always = 'checked="checked"';
 				}
 			}
 		}

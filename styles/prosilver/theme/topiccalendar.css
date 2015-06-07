@@ -81,10 +81,3 @@ div.domTT {
 div.domTTContent {
 	font-size : 1.1em; 
 }
-div.bar {
-	background: url(./images/event_block_bar.gif) repeat-x center center;
-	text-align: right;
-}
-.bar img {
-	padding-top: 1px;
-}

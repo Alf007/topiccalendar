@@ -159,7 +159,10 @@ class main
 						'POPUP'				=> $cal_days[$day]['events'][$e]['event'],
 						'U_EVENT'			=> $cal_days[$day]['events'][$e]['link'],
 						'U_EVENT_END'		=> $cal_days[$day]['events'][$e]['end_event'], 
-					)
+						'DAY_BLOCK_BEGIN'	=> $cal_days[$day]['events'][$e]['block_begin'],
+						'DAY_BLOCK_END'		=> $cal_days[$day]['events'][$e]['block_end'],
+						'DAY_BLOCK'			=> $cal_days[$day]['events'][$e]['in_block'],
+				)
 				);
 			}
 			if ($cal_days[$day]['birthdays'] != '')

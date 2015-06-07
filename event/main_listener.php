@@ -255,6 +255,9 @@ class main_listener implements EventSubscriberInterface
 	 *
 	 * @event core.delete_forum_content_before_query
 	 * @var	array	table_ary	Array of tables from which all rows will be deleted that hold the forum_id
+	 * @var	int		forum_id	the forum id
+	 * @var	array	topic_ids	Array of the topic ids from the forum to be deleted 	
+	 * @var	array	post_counts	Array of counts of posts in the forum, by poster_id
 	 * @since 3.1.5-RC1
 	 */
 	public function delete_forum_content($event)
@@ -268,6 +271,10 @@ class main_listener implements EventSubscriberInterface
 	 *
 	 * @event core.move_topics_before_query
 	 * @var	array	table_ary	Array of tables from which forum_id will be updated for all rows that hold the moved topics
+	 * @var	array	topic_ids	Array of the moved topic ids 
+	 * @var	string	forum_id	The forum id from where the topics are moved
+	 * @var	array	forum_ids	Array of the forums where the topics are moving (includes also forum_id)
+	 * @var bool	auto_sync	Whether or not to perform auto sync
 	 * @since 3.1.5-RC1
 	 */
 	public function move_topics($event)
@@ -423,13 +430,7 @@ class main_listener implements EventSubscriberInterface
 				$event['forum_id'],
 				$event['data']['topic_id'],
 				$event['post_id'],
-				$data['cal_date'],
-				1,
-				$data['interval_date'],
-				$data['date_end'],
-				$data['repeat_always'],
-				$data['cal_interval'],
-				$data['interval_unit']
+				$data
 		);
 	}
 	

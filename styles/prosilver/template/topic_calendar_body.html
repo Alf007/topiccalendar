@@ -32,6 +32,7 @@
 					<!-- ENDIF -->
 					<!-- BEGIN day_infos -->
 					<li class="{day_infos.DAY_CLASS} row day"><div class="bg3">{day_infos.DAY_INFO}</div>
+						<!-- IF day_infos.date_event || day_infos.date_birthday -->
 						<ul class="event">
 						<!-- BEGIN date_event -->
 							<li>
@@ -43,19 +44,22 @@
 										{day_infos.date_event.POPUP}
 									</div>
 									<!-- ENDIF -->
-									<!-- IF day_infos.date_event.DAY_BLOCK_BEGIN -->
-									<div class="bar event_block_arrow" alt="-&gt;"></div>
-									<!-- ELSEIF day_infos.date_event.DAY_BLOCK_END -->
-									<div class="bar event_block_end" alt="-]" /></div>
-									<!-- ENDIF -->
 									{day_infos.date_event.U_EVENT_END}
 								</div>
+									<!-- IF day_infos.date_event.DAY_BLOCK_BEGIN -->
+									<span class="event_block_arrow" alt="-&gt;"></span>
+									<!-- ELSEIF day_infos.date_event.DAY_BLOCK_END -->
+									<span class="event_block_end" alt="-]" /></span>
+									<!-- ELSEIF day_infos.date_event.DAY_BLOCK -->
+									<span class="event_block_bar" alt="--" /></span>
+									<!-- ENDIF -->
 							</li>
 						<!-- END date_event -->
 						<!-- BEGIN date_birthday -->
 							<li>{day_infos.date_birthday.U_EVENT}</li>
 						<!-- END date_birthday -->
 						</ul>
+						<!-- ENDIF -->
 					</li>
 					<!-- END day_infos -->
 					<!-- IF END_DAY_LINK -->

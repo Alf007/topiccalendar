@@ -13,17 +13,15 @@ span.imageset {
 .event_block_arrow {
 	background-image: url('images/event_block_arrow.gif');
 	padding-left: 12px;
-	padding-top: 12px;
+	margin-left:90%;
 }
 .event_block_bar {
 	background-image: url('images/event_block_bar.gif');
-	padding-left: 12px;
-	padding-top: 12px;
+	padding-left: 100%;
 }
 .event_block_end {
 	background-image: url('images/event_block_end.gif');
 	padding-left: 12px;
-	padding-top: 12px;
 }
 .imageset.icon-calendar {
 	background-image: url("images/icon_calendar.gif");
