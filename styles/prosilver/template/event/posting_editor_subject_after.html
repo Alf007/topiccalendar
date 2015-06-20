@@ -82,16 +82,21 @@ function sendDate(month, day, year)
 				<input type="checkbox" name="cal_interval_date" value="1" onClick="if (document.getElementById) { toggle_cal_form_advanced = document.getElementById('cal_form_advanced').style; } else { alert('Upgrade your browser!'); return; } if (toggle_cal_form_advanced.display == 'none') { toggle_cal_form_advanced.display = ''; } else { toggle_cal_form_advanced.display = 'none'; }" {CAL_ADVANCED_FORM_ON}/> {L_CALENDAR_ADVANCED}
 			</dd>
 		</dl>
-		<dl id="cal_form_advanced" style="display: {CAL_ADVANCED_FORM};">
-			<dt><label for="cal_date_end">{L_EVENT_END}:</label></dt>
-			<dd>
-				<a href="javascript: void(0);" onClick="select_date(document.forms[form_name].cal_date_end);" title="{L_DATE_SELECTOR_TITLE}"><span class="imageset icon-calendar"></span><input type="text" class="inputbox autowidth" id="cal_date_end" name="cal_date_end" size="10" maxlength="10" onFocus="this.blur();" value="{CAL_DATE_END}" title="{L_EVENT_END}"></a>
-				<input type="button" class="button2" onClick="this.form.cal_date_end.value = '{CAL_NO_DATE}';" value="{L_CLEAR_DATE}" />
-			</dd>
-			<dd>
-				<input type="text" class="inputbox autowidth" name="cal_interval" value="{CAL_INTERVAL}" size="3" />
-			 	<select class="select autowidth" name="cal_interval_units" title="{L_SEL_INTERVAL}">{CAL_INTERVAL_UNIT_OPTIONS}</select>
-			 	<input type="checkbox" name="cal_repeat_always" value="1" onClick="if (this.checked) { this.form.cal_date_end.value = '{CAL_NO_DATE}' }" {CAL_REPEAT_ALWAYS}/> {L_CAL_REPEAT_FOREVER}
-			</dd>
-		</dl>
+		<div id="cal_form_advanced" style="display: {CAL_ADVANCED_FORM};">
+			<dl>
+				<dt><label for="cal_date_end">{L_EVENT_END}{L_COLON}</label></dt>
+				<dd>
+					<a href="javascript: void(0);" onClick="select_date(document.forms[form_name].cal_date_end);" title="{L_DATE_SELECTOR_TITLE}"><span class="imageset icon-calendar"></span><input type="text" class="inputbox autowidth" id="cal_date_end" name="cal_date_end" size="10" maxlength="10" onFocus="this.blur();" value="{CAL_DATE_END}" title="{L_EVENT_END}"></a>
+					<input type="button" class="button2" onClick="this.form.cal_date_end.value = '{CAL_NO_DATE}';" value="{L_CLEAR_DATE}" />
+				</dd>
+			</dl>
+			<dl>
+				<dt><label for="cal_date_end">{L_EVENT_INTERVAL}{L_COLON}</label></dt>
+				<dd>
+					<input type="text" class="inputbox autowidth" name="cal_interval" value="{CAL_INTERVAL}" size="3" />
+				 	<select class="select autowidth" name="cal_interval_units" title="{L_SEL_INTERVAL}">{CAL_INTERVAL_UNIT_OPTIONS}</select>
+				 	<input type="checkbox" name="cal_repeat_always" value="1" onClick="if (this.checked) { this.form.cal_date_end.value = '{CAL_NO_DATE}' }" {CAL_REPEAT_ALWAYS}/> {L_CAL_REPEAT_FOREVER}
+				</dd>
+			</dl>
+		</div>
 		<!-- ENDIF -->

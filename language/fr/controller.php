@@ -46,7 +46,8 @@ $lang = array_merge($lang, array(
 
 	'WEEKDAY_START'			=> 1,		// Premier jour de la Semaine - 0=Dimanche, 1=Lundi...6=Samedi
 	'EVENT_START'			=> 'Date Unique ou Début',
-	'EVENT_END'				=> 'Date Fin ou Intervalle',
+	'EVENT_END'				=> 'Date de fin',
+	'EVENT_INTERVAL'		=> 'Intervalle',
 	'CALENDAR_ADVANCED'		=> 'avancé',
 	'CAL_REPEAT_FOREVER'	=> 'répéter toujours',
 	'CLEAR_DATE'			=> 'Supprimer Date',

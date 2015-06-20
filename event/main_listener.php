@@ -509,38 +509,9 @@ class main_listener implements EventSubscriberInterface
 
 		if ($event['search_id'] != 'cal_events')
 			return;
-		$d = $this->request->variable('d', '');
-		$date = $this->user->create_datetime($d);
+		$date = $this->user->create_datetime($this->request->variable('d', ''));
 		$ex_fid_ary = $event['ex_fid_ary'];
-		//	Build our query and get our own result
-		$phpbb_content_visibility = $phpbb_container->get('content.visibility');
-		$m_approve_topics_fid_sql = $phpbb_content_visibility->get_global_visibility_sql('topic', $ex_fid_ary, 't.');
-
-		$auth_view_forums = implode(', ', array_keys($this->auth->acl_getf('f_list', true)));
-		//	Control viewable links for queries
-		$cal_auth_sql = ($auth_view_forums != '') ? ' AND t.forum_id IN (' . $auth_view_forums . ') ' : '';
-
-		// get the events
-		$sql_array = array(
-				'SELECT'	=> 'e.*, t.topic_title',
-				'FROM'		=> array( 
-					$this->topic_calendar_table_events	=> 'e',
-					TOPICS_TABLE		=> 't',
-				),
-				'WHERE'		=> 'e.topic_id = t.topic_id
-					AND e.year = ' . $date->format('Y') . '
-					AND e.month = ' . $date->format('n') . '
-					AND e.day = ' . $date->format('j') . $cal_auth_sql . '
-					AND ' . $m_approve_topics_fid_sql . '
-					' . ((sizeof($ex_fid_ary)) ? 'AND ' . $this->db->sql_in_set('t.forum_id', $ex_fid_ary, true) : ''),
-		);
-		$sql = $this->db->sql_build_query('SELECT', $sql_array);
-		$result = $this->db->sql_query_limit($sql, 1001);
-		while ($row = $this->db->sql_fetchrow($result))
-		{
-			$id_ary[] = (int) $row['topic_id'];
-		}
-		$this->db->sql_freeresult($result);
+		$id_ary = $this->functions_topiccal->search_events($this->auth, $ex_fid_ary, $date);
 		//	Hack, inserting our own result array
 		$event['id_ary'] = $id_ary;
 		$event['show_results'] = 'topics';
@@ -622,7 +593,7 @@ class main_listener implements EventSubscriberInterface
 			$prev_cal_multi = 0;
 			while ($row = $this->db->sql_fetchrow($result))
 			{
-				$eventdate = \DateTime::createFromFormat(DATE_FORMAT, sprintf('%d-%02d-%02d 00:00:00', substr($row['date'], 0, 4), substr($row['date'], 4, 2), substr($row['date'], 6, 2)));
+				$eventdate = \DateTime::createFromFormat(DATE_FORMAT, sprintf('%d-%02d-%02d 12:00:00', substr($row['date'], 0, 4), substr($row['date'], 4, 2), substr($row['date'], 6, 2)));
 				$cal_date_replace = array( 
 					$this->user->lang['datetime'][date('D', strtotime('Sunday +' . ($eventdate->format('w') - 1) . ' days'))], 
 					$this->user->lang['datetime'][$short_months[$eventdate->format('m') - 1]], 

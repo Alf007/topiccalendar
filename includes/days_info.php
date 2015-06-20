@@ -249,17 +249,8 @@ class days_info
 			{
 				// only events for this day, or within repeated 
 				$this_day = intval($this->monthView['year'] . $this->monthView['month'] . sprintf('%02d', $cal_this_day));
-				if (($event['end_date'] != 0 && ($event['date'] > $this_day || $event['end_date'] < $this_day)) || ($event['end_date'] == 0 && $event['date'] != $this_day)) 
+				if (!days_info::is_day_in_interval($user, $event['date'], $event['end_date'], $this_day, $event['cal_interval'], $event['interval_unit']))
 					continue;
-				if ($event['end_date'] != 0 && $event['cal_interval'] != 1)
-				{
-					// with interval
-					$begin_date = $user->create_datetime($event['date']);
-					$today_date = $user->create_datetime($this_day);
-					$total_days = $today_date->diff($begin_date)->format('%a');
-					if ($total_days % $event['cal_interval'] != 0)
-						continue;
-				}
 				// Check if user can read target topic
 				if (array_key_exists('cal_read', $event))
 				{
@@ -340,6 +331,51 @@ class days_info
 		return $cal_days;
 	}
 
+	/**
+	 * Check if a date is part of an interval
+	 * 
+	 * @param \phpbb\user $user
+	 * @param string $start date
+	 * @param string $end date
+	 * @param string $date to check
+	 * @param int $interval between valid dates
+	 * @param int $interval_unit (day, week, month, year)
+	 * @return boolean
+	 */
+	public static function is_day_in_interval(\phpbb\user $user, $start, $end, $date, $interval, $interval_unit)
+	{
+		// The starting date is always valid
+		if ($date == $start)
+			return true;
+		// No range, or out of range
+		if ($end == 0 || $date < $start || $end < $date)
+			return false;
+		// No interval
+		if ($interval == 1)
+			return true;
+
+		//	Check if date fall on interval item
+		$begin_date = $user->create_datetime($start);
+		$today_date = $user->create_datetime($date);
+		switch ($interval_unit)
+		{
+		case 0:	// DAY
+			return $today_date->diff($begin_date)->format('%a') % $interval == 0;
+	
+		case 1:	// WEEK
+			return $today_date->diff($begin_date)->format('%a') % ($interval * 7) == 0;
+	
+		case 2:	// MONTH
+			return $today_date->format('j') == $begin_date->format('j') && (intval($today_date->format('n')) - intval($begin_date->format('n'))) % interval == 0;
+			break;
+	
+		case 3:	// YEAR
+			return $today_date->format('j') == $begin_date->format('j') && $today_date->format('n') == $begin_date->format('n') && (intval($today_date->format('Y')) - intval($begin_date->format('Y'))) % interval == 0;
+			break;
+		}
+		return false;
+	}
+	
 	/**
 	 * Get array of birthdays data
 	 *

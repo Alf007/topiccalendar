@@ -80,7 +80,7 @@ class functions_topic_calendar
 	 */
 	public static function get_datetime($user, $date)
 	{
-		return $user->create_datetime(sprintf('%d-%02d-%02d 00:00:00', substr($date, 0, 4), substr($date, 4, 2), substr($date, 6, 2)));
+		return $user->create_datetime(sprintf('%d-%02d-%02d 12:00:00', substr($date, 0, 4), substr($date, 4, 2), substr($date, 6, 2)));
 	}
 
 	/**
@@ -94,9 +94,7 @@ class functions_topic_calendar
 	 */
 	public static function get_date_end($datetime, $repeat, $interval, $interval_unit)
 	{
-		// only if the repeat is more than 1 day (meaning it actually repeats) do we get the end date
-		// else it is just a single event
-		if ($repeat > 1)
+		if ($repeat > 0)
 		{
 			$temp_date = clone $datetime;
 			$interval_num = $interval * $repeat;
@@ -131,6 +129,7 @@ class functions_topic_calendar
 			}
 			return $temp_date->add(new \DateInterval('P' . $interval_format));
 		}
+		// else it is just a single event
 		return false;
 	}
 	
@@ -175,9 +174,7 @@ class functions_topic_calendar
 	 */
 	public function build_datetime_aray($name, $datetime)
 	{
-		return array(
-			$name => intval($datetime->format('Ymd')),
-		);
+		return $datetime ? array($name => intval($datetime->format('Ymd'))) : array();
 	}
 	
 	/**
@@ -209,7 +206,7 @@ class functions_topic_calendar
 		
 		// setup defaults
 		$start_date = $this->user->create_datetime($data['cal_date']);
-		$end_date = $this->user->create_datetime($data['date_end']);
+		$end_date = $data['date_end'] != $this->user->lang['NO_DATE'] ? $this->user->create_datetime($data['date_end']) : null;
 		// make sure the end is not before the beginning, if so swap
 		if ($start_date && $end_date && $end_date < $start_date)
 		{
@@ -218,7 +215,7 @@ class functions_topic_calendar
 			$start_date = $tmp;
 		}
 		
-		if ($start_date && $data['interval_date'] && ($data['date_end'] != $this->user->lang['NO_DATE'] || $data['repeat_always']))
+		if ($start_date && $data['interval_date'] && ($end_date || $data['repeat_always']))
 		{
 			if ($data['repeat_always'])
 			{
@@ -246,14 +243,17 @@ class functions_topic_calendar
 					break;
 				}
 				$temp_date = functions_topic_calendar::get_date_end($start_date, $repeat, $interval, $data['interval_unit']);
-				if ($temp_date <= $end_date)
+				if ($temp_date)
 				{
-					$end_date = $temp_date;
-				}
-				else
-				{
-					$repeat--;
-					$end_date = functions_topic_calendar::get_date_end($start_date, $repeat, $interval, $data['interval_unit']);
+					if ($temp_date <= $end_date)
+					{
+						$end_date = $temp_date;
+					}
+					else
+					{
+						$repeat--;
+						$end_date = functions_topic_calendar::get_date_end($start_date, $repeat, $interval, $data['interval_unit']);
+					}
 				}
 			}
 		}
@@ -386,7 +386,7 @@ class functions_topic_calendar
 			$repeat = $row['cal_repeat'];
 			$event['message'] = '<i>' . $date_f . '</i>';
 			// if this is more than a single date event, then dig deeper
-			if ($repeat != 1)
+			if ($repeat != 1 || $row['end_date'] != 0)
 			{
 				// if this is a repeating or block event (repeat > 1), show end date!
 				$date_end = functions_topic_calendar::get_date_end($date, $repeat, $interval, $interval_unit);
@@ -409,6 +409,56 @@ class functions_topic_calendar
 	}
 	
 	/**
+	* Search events for a date
+	* 
+	* @param \phpbb\auth\auth	auth
+	* @param array	ex_fid_ary		Array of excluded forum ids
+	* @param \phpbb\datetime	date	Date for search
+	* 
+	* @return array topic ids with event at this date
+	*/
+	public function search_events(\phpbb\auth\auth $auth, $ex_fid_ary, \phpbb\datetime $date)
+	{
+		global $phpbb_container;
+		//	Build our query and get our own result
+		$phpbb_content_visibility = $phpbb_container->get('content.visibility');
+		$m_approve_topics_fid_sql = $phpbb_content_visibility->get_global_visibility_sql('topic', $ex_fid_ary, 't.');
+		
+		$auth_view_forums = implode(', ', array_keys($auth->acl_getf('f_list', true)));
+		//	Control viewable links for queries
+		$cal_auth_sql = ($auth_view_forums != '') ? ' AND t.forum_id IN (' . $auth_view_forums . ') ' : '';
+		
+		$date_int = intval($date->format('Ymd'));
+		// get the events
+		$sql_array = array(
+				'SELECT'	=> 'e.*, t.topic_title',
+				'FROM'		=> array(
+						$this->topic_calendar_table_events	=> 'e',
+						TOPICS_TABLE		=> 't',
+				),
+				'WHERE'		=> 'e.topic_id = t.topic_id
+					AND (e.date = ' . $date_int . '
+						OR (e.date < ' . $date_int . '
+						AND e.end_date >= ' . $date_int . '))' . $cal_auth_sql . '
+					AND ' . $m_approve_topics_fid_sql . '
+					' . ((sizeof($ex_fid_ary)) ? 'AND ' . $this->db->sql_in_set('t.forum_id', $ex_fid_ary, true) : ''),
+		);
+		$sql = $this->db->sql_build_query('SELECT', $sql_array);
+		$result = $this->db->sql_query_limit($sql, 1001);
+		while ($row = $this->db->sql_fetchrow($result))
+		{
+			$begin_date = $this->user->create_datetime($row['date']);
+			$total_days = $date->diff($begin_date)->format('%a');
+			if (days_info::is_day_in_interval($this->user, $row['date'], $row['end_date'], $date_int, $row['cal_interval'], $row['interval_unit']))
+			{
+				$topic_ids[] = (int) $row['topic_id'];
+			}
+		}
+		$this->db->sql_freeresult($result);
+		return $topic_ids;
+	}
+	
+	/**
 	 * Print out the selection box for selecting date
 	 *
 	 * When a new topic is added or the first post in topic is edited, the poster
@@ -420,8 +470,7 @@ class functions_topic_calendar
 	 * @param int $post_id
 	 * @param int $forum_id
 	 *
-	 * @access private
-	 * @return void
+	 * @return array template data
 	 */
 	public function generate_entry($post_data, $mode, $forum_id, $topic_id, $post_id)
 	{
@@ -466,7 +515,7 @@ class functions_topic_calendar
 				{
 					// only if the repeat is more than 1 day (meaning it actually repeats) do we get the end date
 					// else it is just a single event
-					if ($repeat > 1)
+					if ($repeat != 1 || $row['end_date'] != 0)
 					{
 						$date_end = functions_topic_calendar::get_date_end($dt, $repeat, $interval, $interval_unit);
 						if ($date_end)

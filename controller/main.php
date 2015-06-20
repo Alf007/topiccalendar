@@ -128,7 +128,10 @@ class main
 			'U_NEXT_YEAR'=> $url_next_year,
 			)
 		);
-
+		
+		$this->template->assign_var('S_MONTH', $day_infos->monthView['monthName']);
+		$this->template->assign_var('S_YEAR', $day_infos->monthView['year']);
+		
 		$this->functions_topiccal->apply_weekdays();
 		$this->functions_topiccal->apply_links(intval($day_infos->monthView['month']), intval($day_infos->monthView['year']));
 
