@@ -4,13 +4,9 @@
     "description": "Extension to define event date from topics, displayed on a calendar page - conversion/update from MyCalendar",
     "homepage": "https://github.com/Alf007/topiccalendar",
     "version": "1.0.0",
-    "time": "2017-02-15",
+    "time": "2017-02-24",
     "keywords": ["phpbb", "extension", "calendar", "topic", "event", "birthdays"],
     "license": "GPL-2.0",
-    "require": {
-        "php": ">=5.3.3",
-        "composer/installers": "~1.0"
-    },
     "authors": [
         {
             "name": "Alf007",
@@ -19,9 +15,13 @@
         {
             "name": "mojavelinux",
             "homepage": "http://www.mojavelinux.com/projects/mycalendar/",
-            "role": "Previous developper"
+            "role": "Original phpbb 2 developper"
         }
     ],
+    "require": {
+        "php": ">=5.3.3",
+        "composer/installers": "~1.0"
+    },
     "require-dev": {
         "phpbb/epv": "dev-master"
     },
@@ -29,11 +29,6 @@
         "display-name": "Topic Calendar",
         "soft-require": {
             "phpbb/phpbb": ">=3.1.4,<3.3"
-        },
-        "version-check": {
-			"host": "alf007.github.io",
-			"directory": "/topiccalendar",
-			"filename": "topiccalendar.json"
-		}
+        }
     }
 }
