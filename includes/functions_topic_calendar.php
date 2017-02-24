@@ -72,6 +72,25 @@ class functions_topic_calendar
 	}
 
 	/**
+	 * Format datetime from input
+	 * 
+	 * @param string $date as input format (dd/mm/yyyy)
+	 * @return string ISO datetime
+	 */
+	public function get_input_isodate($date)
+	{
+		// convert the user format of the date into something we can parse to make a IsoDate string
+		// we need to pad with placeholders to get the rigth offset
+		$cf = preg_replace('/m/i', 'mm', $this->user->lang['DATE_INPUT_FORMAT']);
+		$cf = preg_replace('/d/i', 'dd', $cf);
+		$cf = preg_replace('/Y/i', 'yyyy', $cf);
+		$cf_yOffset = stripos($cf, 'y');
+		$cf_mOffset = stripos($cf, 'm');
+		$cf_dOffset = stripos($cf, 'd');
+		return sprintf('%d-%02d-%02d 12:00:00', substr($date, $cf_yOffset, 4), substr($date, $cf_mOffset, 2), substr($date, $cf_dOffset, 2));
+	}
+
+	/**
 	 * Initialize a datetime
 	 * 
 	 * @param \phpbb\user
@@ -205,8 +224,8 @@ class functions_topic_calendar
 		$interval = ($tmp_interval = abs($data['cal_interval'])) ? $tmp_interval : 1;
 		
 		// setup defaults
-		$start_date = $this->user->create_datetime($data['cal_date']);
-		$end_date = $data['date_end'] != $this->user->lang['NO_DATE'] ? $this->user->create_datetime($data['date_end']) : null;
+		$start_date = $this->user->create_datetime($this->get_input_isodate($data['cal_date']));
+		$end_date = $data['date_end'] != $this->user->lang['NO_DATE'] ? $this->user->create_datetime($this->get_input_isodate($data['date_end'])) : null;
 		// make sure the end is not before the beginning, if so swap
 		if ($start_date && $end_date && $end_date < $start_date)
 		{

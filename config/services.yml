@@ -5,31 +5,31 @@ services:
     alf007.topiccalendar.controller:
         class: alf007\topiccalendar\controller\main
         arguments:
-            - @auth
-            - @config
-            - @dbal.conn
-            - @content.visibility
-            - @controller.helper
-            - @request
-            - @template
-            - @user
-            - %core.root_path%
-            - %core.php_ext%
-            - %tables.topic_calendar_config%
-            - %tables.topic_calendar_events%
+            - '@auth'
+            - '@config'
+            - '@dbal.conn'
+            - '@content.visibility'
+            - '@controller.helper'
+            - '@request'
+            - '@template'
+            - '@user'
+            - '%core.root_path%'
+            - '%core.php_ext%'
+            - '%tables.topic_calendar_config%'
+            - '%tables.topic_calendar_events%'
     alf007.topiccalendar.listener:
         class:  alf007\topiccalendar\event\main_listener
         arguments:
-            - @auth
-            - @config
-            - @dbal.conn
-            - @controller.helper
-            - @request
-            - @template
-            - @user
-            - %core.root_path%
-            - %core.php_ext%
-            - %tables.topic_calendar_config%
-            - %tables.topic_calendar_events%
+            - '@auth'
+            - '@config'
+            - '@dbal.conn'
+            - '@controller.helper'
+            - '@request'
+            - '@template'
+            - '@user'
+            - '%core.root_path%'
+            - '%core.php_ext%'
+            - '%tables.topic_calendar_config%'
+            - '%tables.topic_calendar_events%'
         tags:
             - { name: event.listener }

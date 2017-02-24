@@ -1,12 +1,14 @@
 alf007_topiccalendar_controller:
-   pattern: /topiccalendar/{month}/{year}
-   defaults: { _controller: alf007.topiccalendar.controller:handle, month: 0, year: 0 }
-   requirements:
-       month: \d+
-       year: \d+
+    path: /topiccalendar/{month}/{year}
+    methods: [GET]
+    defaults: { _controller: alf007.topiccalendar.controller:handle, month: 0, year: 0 }
+    requirements:
+        month: \d+
+        year: \d+
 alf007_topiccalendar_controller_minical:
-   pattern: /minicalendar/{month}/{year}
-   defaults: { _controller: alf007.topiccalendar.controller:display_mini_calendar, month: 0, year: 0 }
-   requirements:
-       month: \d+
-       year: \d+
+    path: /minicalendar/{month}/{year}
+    methods: [GET]
+    defaults: { _controller: alf007.topiccalendar.controller:display_mini_calendar, month: 0, year: 0 }
+    requirements:
+        month: \d+
+        year: \d+
