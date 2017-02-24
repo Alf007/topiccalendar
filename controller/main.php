@@ -22,16 +22,16 @@ class main
 
 	/** @var \phpbb\db\driver\driver_interface */
 	protected $db;
-	
+
 	/** @var \phpbb\content_visibility */
 	protected $content_visibility;
-	
+
 	/* @var \phpbb\controller\helper */
 	protected $helper;
 
 	/** @var \phpbb\request\request_interface */
 	protected $request;
-	
+
 	/* @var \phpbb\template\template */
 	protected $template;
 
@@ -43,7 +43,7 @@ class main
 
 	/** @var string PHP extension */
 	protected $phpEx;
-	
+
 	protected $topic_calendar_table_config;
 	protected $topic_calendar_table_events;
 
@@ -95,7 +95,7 @@ class main
 		$this->user->add_lang_ext('alf007/topiccalendar', 'controller');
 
 		$day_infos = new days_info($this->auth, $this->db, $this->root_path, $this->phpEx, $this->topic_calendar_table_config, $this->topic_calendar_table_events, $this->content_visibility);
-		
+
 		$cal_days = $day_infos->get_days_info($this->user, $year, $month);
 
 		$nextyear = $day_infos->monthView['year'];
@@ -103,11 +103,11 @@ class main
 		if ($nextmonth > 12)
 		{
 			$nextmonth = 1;
-			$nextyear++; 
+			$nextyear++;
 		}
 
 		$previousyear = $day_infos->monthView['year'];
-		$previousmonth = $day_infos->monthView['month'] - 1; 
+		$previousmonth = $day_infos->monthView['month'] - 1;
 		if ($previousmonth < 1)
 		{
 			$previousmonth = 12;
@@ -128,10 +128,10 @@ class main
 			'U_NEXT_YEAR'=> $url_next_year,
 			)
 		);
-		
+
 		$this->template->assign_var('S_MONTH', $day_infos->monthView['monthName']);
 		$this->template->assign_var('S_YEAR', $day_infos->monthView['year']);
-		
+
 		$this->functions_topiccal->apply_weekdays();
 		$this->functions_topiccal->apply_links(intval($day_infos->monthView['month']), intval($day_infos->monthView['year']));
 
@@ -148,7 +148,7 @@ class main
 		{
 			$this->template->assign_block_vars('before_first_day', array());
 		}
-				
+
 		for ($day = 0, $last = count($cal_days); $day < $last; $day ++)
 		{
 			$this->template->assign_block_vars('day_infos', array(
@@ -161,7 +161,7 @@ class main
 				$this->template->assign_block_vars('day_infos.date_event', array(
 						'POPUP'				=> $cal_days[$day]['events'][$e]['event'],
 						'U_EVENT'			=> $cal_days[$day]['events'][$e]['link'],
-						'U_EVENT_END'		=> $cal_days[$day]['events'][$e]['end_event'], 
+						'U_EVENT_END'		=> $cal_days[$day]['events'][$e]['end_event'],
 						'DAY_BLOCK_BEGIN'	=> $cal_days[$day]['events'][$e]['block_begin'],
 						'DAY_BLOCK_END'		=> $cal_days[$day]['events'][$e]['block_end'],
 						'DAY_BLOCK'			=> $cal_days[$day]['events'][$e]['in_block'],
@@ -175,12 +175,12 @@ class main
 				));
 			}
 		}
-		
+
 		if (($day + $start_day) % 7 != 6)
 		{
 			$this->template->assign_var('END_DAY_LINK', true);
 		}
-		
+
 		$this->template->assign_var('S_IN_TOPIC_CALENDAR', true);
 
 		return $this->helper->render('topic_calendar_body.html');
