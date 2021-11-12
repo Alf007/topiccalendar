@@ -56,12 +56,12 @@ class days_info
 		$this->content_visibility = $content_visibility;
 
 		// initialise our forums auth list
-		$auth_view_forums = implode(', ', array_keys($this->auth->acl_getf('f_list', true)));
-		$auth_read_forums = implode(', ', array_keys($this->auth->acl_getf('f_read', true)));
+		$auth_view_forums = array_keys($this->auth->acl_getf('f_list', true));
+		$auth_read_forums = array_keys($this->auth->acl_getf('f_read', true));
 		
 		//	Control viewable links for queries
-		$this->cal_auth_read_sql = ($auth_read_forums != '') ? ', f.forum_name, (t.forum_id IN (' . $auth_read_forums . ')) as cal_read' : '';
-		$this->cal_auth_sql = ($auth_view_forums != '') ? ' AND t.forum_id IN (' . $auth_view_forums . ') ' : '';
+		$this->cal_auth_read_sql = count($auth_read_forums) > 0 ? ', f.forum_name, ' . $this->db->sql_in_set('t.forum_id', $auth_read_forums) . ' as cal_read' : '';
+		$this->cal_auth_sql = count($auth_view_forums) > 0 ? ' AND ' . $this->db->sql_in_set('t.forum_id', $auth_view_forums) : '';
 		
 		//	Get list of forum ids and other configuration infos
 		$sql = 'SELECT * FROM ' . $table_config;
@@ -69,7 +69,7 @@ class days_info
 		$row = $this->db->sql_fetchrow($result);
 		$this->db->sql_freeresult($result);
 		// configuration data
-		$this->enabled_forum_ids = $row['forum_ids'];
+		$this->enabled_forum_ids = explode(',', $row['forum_ids']);
 		$this->max_events = $row['minical_max_events'];
 		$this->days_ahead = $row['minical_days_ahead'];
 	}
@@ -80,7 +80,7 @@ class days_info
 	 * @param \phpbb\user $user
 	 * @param $year
 	 * @param $month
-	 * @param $for_minical [optional]
+	 * @param $for_minical boolean [optional]
 	 * 
 	 * @return array of days info
 	 */
@@ -108,11 +108,11 @@ class days_info
 		
 		// setup the current view information
 		$this->monthView = array(
-			'monthName'	=> $first_day->format('F'),
-			'year'		=> $first_day->format('Y'),
-			'month'		=> $first_day->format('m'),
-			'numDays'	=> $first_day->format('t'),
-			'offset'	=> $first_day->format('w'),
+			'monthName' => $first_day->format('F'),
+			'year' => $first_day->format('Y'),
+			'month' => $first_day->format('m'),
+			'numDays' => $first_day->format('t'),
+			'offset' => $first_day->format('w'),
 		);
 
 		// is this going to give us a negative number ever??
@@ -146,32 +146,28 @@ class days_info
 		$birthday_rows = $this->get_birthdays($this->monthView['year']); 
 
 		// Check events for the month
-		$date_min = intval($this->monthView['year'] . $this->monthView['month'] . '01');
-		$date_max = intval($this->monthView['year'] . $this->monthView['month'] . '31');
+		$date_min = $this->monthView['year'] . $this->monthView['month'] . '01';
+		$date_max = $this->monthView['year'] . $this->monthView['month'] . '31';
 		$sql_array = array(
-				'SELECT'	=> 'e.*, t.*' . $this->cal_auth_read_sql,
-				'FROM'		=> array(
+				'SELECT' => 'e.*, t.*, pt.post_text, pt.bbcode_uid, pt.bbcode_bitfield' . $this->cal_auth_read_sql,
+				'FROM' => array(
 						$this->table_events	=> 'e',
 						TOPICS_TABLE		=> 't',
 						FORUMS_TABLE		=> 'f',
+						POSTS_TABLE			=> 'pt'
 				),
-				'WHERE'		=> 	'e.forum_id = f.forum_id
-					AND f.forum_id IN (' . $this->enabled_forum_ids . ')
-					AND e.topic_id = t.topic_id ' .
-					$this->cal_auth_sql . '
-					AND e.date <= ' . $date_max . '
+				'WHERE' => 'e.forum_id = f.forum_id
+					AND ' . $this->db->sql_in_set('f.forum_id', $this->enabled_forum_ids) . " 
+					AND e.topic_id = t.topic_id 
+					$this->cal_auth_sql 
+					AND e.date <= " . $this->db->cast_expr_to_bigint($date_max) . ' 
 					AND ((e.cal_repeat = 1
-						AND e.date >= ' . $date_min . ')
+						AND e.date >= ' . $this->db->cast_expr_to_bigint($date_min) . ')
 						OR (e.cal_repeat <> 1
-						AND e.end_date >= ' . $date_min . '))',
-				'ORDER_BY'	=> 'e.date ASC'
+						AND e.end_date >= ' . $this->db->cast_expr_to_bigint($date_min) . '))
+ 					AND pt.post_id = t.topic_first_post_id',
+				'ORDER_BY' => 'e.date ASC'
 		);
-		if (!$for_minical)
-		{
-			$sql_array['SELECT'] .= ', pt.post_text, pt.bbcode_uid, pt.bbcode_bitfield';
-			$sql_array['FROM'][POSTS_TABLE] = 'pt';
-			$sql_array['WHERE'] .= ' AND pt.post_id = t.topic_first_post_id';
-		}
 		$sql = $this->db->sql_build_query('SELECT', $sql_array);
 		$result = $this->db->sql_query($sql);
 		$events = array();
@@ -271,6 +267,7 @@ class days_info
 						if ($can_view && !isset($topicCache[$topic_id]))
 						{
 							$post_text = $event['post_text'];
+							decode_message($post_text);
 		
 							// if we are spilling over, reduce size...[!] should be configurable [!]
 							if (strlen($post_text) > 200)
@@ -309,9 +306,9 @@ class days_info
 						$cal_days[$a_day]['events'][$event_index]['block_begin'] = $event['end_date'] != 0 && $event['date'] == $this_day; 
 						$cal_days[$a_day]['events'][$event_index]['block_end'] = $event['end_date'] != 0 && $event['end_date'] == $this_day; 
 						$cal_days[$a_day]['events'][$event_index]['in_block'] = $event['end_date'] != 0 && $event['cal_interval'] == 1 && $event['date'] < $this_day && $event['end_date'] > $this_day; 
+						$event_index++;
 					}
 				}
-				$event_index++;
 			}	//while($event)
 			if ($has_event)
 			{
@@ -385,24 +382,25 @@ class days_info
 	public function get_birthdays($year)
 	{
 		$birthdays = array();
+		$users = array(USER_NORMAL, USER_FOUNDER);
 		$sql = 'SELECT *
 					FROM ' . USERS_TABLE . "
 					WHERE user_birthday NOT LIKE '%- 0-%'
 						AND user_birthday NOT LIKE '0-%'
 						AND	user_birthday NOT LIKE '0- 0-%'
 						AND	user_birthday NOT LIKE ''
-						AND user_type IN (" . USER_NORMAL . ', ' . USER_FOUNDER . ')';
+						AND " . $this->db->sql_in_set('user_type', $users);
 		$result = $this->db->sql_query($sql);
 		while ($row = $this->db->sql_fetchrow($result))
 		{
-			$birthdays[] = array(
-					'username'		=> $row['username'],
-					'check_date'	=> $year . '-' . sprintf('%02d', substr($row['user_birthday'], 3, 2)) . '-' . sprintf('%02d', substr($row['user_birthday'], 0, 2)),
-					'birthday' 		=> $row['user_birthday'],
-					'id'		=> $row['user_id'],
-					'show_age'		=> (isset($row['user_show_age'])) ? $row['user_show_age'] : 0,
-					'colour'		=> $row['user_colour']
-			);
+			 array_push($birthdays, array(
+					'username' => $row['username'],
+					'check_date' => $year . '-' . sprintf('%02d', substr($row['user_birthday'], 3, 2)) . '-' . sprintf('%02d', substr($row['user_birthday'], 0, 2)),
+					'birthday' => $row['user_birthday'],
+					'id' => $row['user_id'],
+					'show_age' => (isset($row['user_show_age'])) ? $row['user_show_age'] : 0,
+					'colour' => $row['user_colour'],
+			));
 		}
 		$this->db->sql_freeresult($result);
 		sort($birthdays);
@@ -413,24 +411,23 @@ class days_info
 	{
 		$date_ahead = clone $this->today;
 		$date_ahead->add(new \DateInterval('P' . $this->days_ahead . 'D'));
-		$date_min = intval($this->today->format('Ymd'));
-		$date_max = intval($date_ahead->format('Ymd'));
-		
-		// initialise some sql bits
-		$days_ahead_sql = ($this->days_ahead > 0) ? ' AND e.date <= ' . $date_max . ' ' : '';
+		$after_date_min = 'e.date >= ' . $this->db->cast_expr_to_bigint($this->today->format('Ymd'));
+		$before_date_max = $this->days_ahead > 0 ? 'e.date <= ' . $this->db->cast_expr_to_bigint($date_ahead->format('Ymd')) : true;
 		
 		// get the incoming events
 		$sql_array = array(
 				'SELECT'	=> 'e.*, t.topic_title' . $this->cal_auth_read_sql,
-				'FROM'		=> array(
+				'FROM' => array(
 						$this->table_events	=> 'e',
-						TOPICS_TABLE		=> 't',
-						FORUMS_TABLE		=> 'f'
+						TOPICS_TABLE => 't',
+						FORUMS_TABLE => 'f'
 				),
-				'WHERE'		=> 'e.forum_id = f.forum_id
+				'WHERE' => "e.forum_id = f.forum_id
 					AND e.topic_id = t.topic_id
-					AND e.date >= ' . $date_min . $days_ahead_sql . $this->cal_auth_sql,
-				'ORDER_BY'	=> 'e.date ASC'
+					AND $after_date_min
+					AND $before_date_max
+					$this->cal_auth_sql",
+				'ORDER_BY' => 'e.date ASC'
 		);
 		$sql = $this->db->sql_build_query('SELECT', $sql_array);
 		return $this->db->sql_query_limit($sql, $this->max_events);

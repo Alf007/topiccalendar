@@ -66,7 +66,7 @@ class functions_topic_calendar
 		{
 			$row = $this->db->sql_fetchrow($result);
 			$this->db->sql_freeresult($result);
-			return count($row['forum_ids']) > 0 ? $row['forum_ids'] : false; 
+			return count(explode(',', $row['forum_ids'])) > 0 ? $row['forum_ids'] : false; 
 		}
 		return false;
 	}
@@ -107,9 +107,9 @@ class functions_topic_calendar
 	 *
 	 * @param \phpbb\datetime date for start
 	 * @param $repeat number
-	 * @param $interval to repeat
-	 * @param $interval unit (days, weeks, months or years)
-	 * @return phpbb\datetime end date
+	 * @param $interval number to repeat
+	 * @param $interval number unit (days, weeks, months or years)
+	 * @return \phpbb\datetime end date
 	 */
 	public static function get_date_end($datetime, $repeat, $interval, $interval_unit)
 	{
@@ -390,7 +390,7 @@ class functions_topic_calendar
 			),
 			'WHERE' => $this->db->sql_build_array('SELECT', $sql_where) . ' 
 				AND e.topic_id = t.topic_id
-				AND e.forum_id IN (' . $forum_ids . ')' 
+				AND ' . $this->db->sql_in_set('e.forum_id', explode(',', $forum_ids)) 
 		);
 		$sql = $this->db->sql_build_query('SELECT', $sql_array);
 		$result = $this->db->sql_query($sql);
@@ -443,11 +443,12 @@ class functions_topic_calendar
 		$phpbb_content_visibility = $phpbb_container->get('content.visibility');
 		$m_approve_topics_fid_sql = $phpbb_content_visibility->get_global_visibility_sql('topic', $ex_fid_ary, 't.');
 		
-		$auth_view_forums = implode(', ', array_keys($auth->acl_getf('f_list', true)));
-		//	Control viewable links for queries
-		$cal_auth_sql = ($auth_view_forums != '') ? ' AND t.forum_id IN (' . $auth_view_forums . ') ' : '';
+		$auth_view_forums = array_keys($auth->acl_getf('f_list', true));
 		
-		$date_int = intval($date->format('Ymd'));
+		$date_format = $date->format('Ymd');
+		$forums_to_view = count($auth_view_forums) > 0 ? " AND $this->db->sql_in_set('t.forum_id', $auth_view_forums)" : '';
+		$excluded_forums = sizeof($ex_fid_ary) ? " AND $this->db->sql_in_set('t.forum_id', $ex_fid_ary, true)" : '';
+		
 		// get the events
 		$sql_array = array(
 				'SELECT'	=> 'e.*, t.topic_title',
@@ -455,20 +456,23 @@ class functions_topic_calendar
 						$this->topic_calendar_table_events	=> 'e',
 						TOPICS_TABLE		=> 't',
 				),
-				'WHERE'		=> 'e.topic_id = t.topic_id
-					AND (e.date = ' . $date_int . '
-						OR (e.date < ' . $date_int . '
-						AND e.end_date >= ' . $date_int . '))' . $cal_auth_sql . '
-					AND ' . $m_approve_topics_fid_sql . '
-					' . ((sizeof($ex_fid_ary)) ? 'AND ' . $this->db->sql_in_set('t.forum_id', $ex_fid_ary, true) : ''),
+				'WHERE'		=> "e.topic_id = t.topic_id
+					AND (e.date = $this->db->cast_expr_to_bigint($date_format) 
+						OR (e.date < $this->db->cast_expr_to_bigint($date_format) 
+							AND e.end_date >= $this->db->cast_expr_to_bigint($date_format)
+						)
+					)
+					$forums_to_view
+					AND $m_approve_topics_fid_sql
+					$excluded_forums",
 		);
 		$sql = $this->db->sql_build_query('SELECT', $sql_array);
 		$result = $this->db->sql_query_limit($sql, 1001);
 		while ($row = $this->db->sql_fetchrow($result))
 		{
-			$begin_date = $this->user->create_datetime($row['date']);
-			$total_days = $date->diff($begin_date)->format('%a');
-			if (days_info::is_day_in_interval($this->user, $row['date'], $row['end_date'], $date_int, $row['cal_interval'], $row['interval_unit']))
+			//$begin_date = $this->user->create_datetime($row['date']);
+			//$total_days = $date->diff($begin_date)->format('%a');
+			if (days_info::is_day_in_interval($this->user, $row['date'], $row['end_date'], $this->db->cast_expr_to_bigint($date_format), $row['cal_interval'], $row['interval_unit']))
 			{
 				$topic_ids[] = (int) $row['topic_id'];
 			}
@@ -615,12 +619,12 @@ class functions_topic_calendar
 			{
 				$weekdays .= ', ';
 			}
-			$weekdays .= '"' . $this->user->lang['datetime'][date('D', strtotime("Sunday +{$i} days"))] . '"';
+			$weekdays .= '"' . $this->user->lang['datetime'][date('D', strtotime("Monday +{$i} days"))] . '"';
 			if ($weekdays_long != '')
 			{
 				$weekdays_long .= ', ';
 			}
-			$weekdays_long .= '"' . $this->user->lang['datetime'][date('l', strtotime("Sunday +{$i} days"))] . '"';
+			$weekdays_long .= '"' . $this->user->lang['datetime'][date('l', strtotime("Monday +{$i} days"))] . '"';
 		}
 		
 		$this->template->assign_vars(array(
