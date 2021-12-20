@@ -1,65 +1,28 @@
 <?php
 /**
  *
- * This file is part of the phpBB Forum Software package.
+ * @package phpBB Extension - Topic Calendar
  *
- * @copyright (c) phpBB Limited <https://www.phpbb.com>
- * @license GNU General Public License, version 2 (GPL-2.0)
- *
- * For full copyright and license information, please see
- * the docs/CREDITS.txt file.
+ * @license http://opensource.org/licenses/gpl-2.0.php GNU General Public License v2
  *
  */
 
 namespace alf007\topiccalendar;
 
-class ext extends \phpbb\extension\base
+use phpbb\extension\base;
+
+class ext extends base
 {
 	/**
 	 * Check whether or not the extension can be enabled.
 	 *
+	 * Requires phpBB 3.2.0 due to EoL of phpBB 3.1
+	 *
 	 * @return bool
+	 * @access public
 	 */
 	public function is_enableable()
 	{
-		return $this->php_requirements() && ($this->phpbb_31x_compatible() || $this->phpbb_current_compatible());
-	}
-
-	/**
-	 * Check PHP requirements
-	 *
-	 * Requires PHP 5.4.0 or greater
-	 * Requires PHP ZipArchive binary
-	 *
-	 * @return bool
-	 */
-	protected function php_requirements()
-	{
-		return phpbb_version_compare(PHP_VERSION, '5.4.0', '>=') && class_exists('ZipArchive');
-	}
-
-	/**
-	 * Check phpBB 3.2 (and later) compatibility
-	 *
-	 * Requires phpBB 3.2.0-b3 or greater
-	 *
-	 * @return bool
-	 */
-	protected function phpbb_current_compatible()
-	{
-		return phpbb_version_compare(PHPBB_VERSION, '3.2.0-b3', '>=');
-	}
-
-	/**
-	 * Check phpBB 3.1 compatibility
-	 *
-	 * Requires phpBB 3.1.4 or greater
-	 *
-	 * @return bool
-	 */
-	protected function phpbb_31x_compatible()
-	{
-		return phpbb_version_compare(PHPBB_VERSION, '3.1.4', '>=') && phpbb_version_compare(PHPBB_VERSION, '3.2.0-dev', '<');
+		return phpbb_version_compare(PHPBB_VERSION, '3.2.0', '>=') && phpbb_version_compare(PHP_VERSION, '5.4.7', '>=');
 	}
 }
-

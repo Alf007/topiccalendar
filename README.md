@@ -1,4 +1,4 @@
-# phpBB 3.1 Extension - Topic Calendar
+# phpBB 3.2 Extension - Topic Calendar
 
 ## Features:
 This Extension allows a phpBB3.1 board owner to mark specified forums as calendar-enabled. Events can then be associated with the topics in these forums.
@@ -16,7 +16,7 @@ This Extension allows a phpBB3.1 board owner to mark specified forums as calenda
 * French
 
 ## Requirements
-* phpBB 3.1.0-RC2 or higher
+* phpBB 3.2 or higher
 * PHP 5.3.3 or higher
 * Javascript is required by this extension.
 
