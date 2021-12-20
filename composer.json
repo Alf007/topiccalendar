@@ -6,7 +6,7 @@
     "version": "1.0.0",
     "time": "2017-02-24",
     "keywords": ["phpbb", "extension", "calendar", "topic", "event", "birthdays"],
-    "license": "GPL-2.0",
+    "license": "GPL-2.0-only",
     "authors": [
         {
             "name": "Alf007",

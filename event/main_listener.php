@@ -595,7 +595,7 @@ class main_listener implements EventSubscriberInterface
 			{
 				$eventdate = \DateTime::createFromFormat(DATE_FORMAT, sprintf('%d-%02d-%02d 12:00:00', substr($row['date'], 0, 4), substr($row['date'], 4, 2), substr($row['date'], 6, 2)));
 				$cal_date_replace = array( 
-					$this->user->lang['datetime'][date('D', strtotime('Sunday +' . ($eventdate->format('w') - 1) . ' days'))], 
+					$this->user->lang['datetime'][date('D', strtotime('Monday +' . ($eventdate->format('w') - 1) . ' days'))], 
 					$this->user->lang['datetime'][$short_months[$eventdate->format('m') - 1]], 
 					$eventdate->format('m'), 
 					$eventdate->format('d'), 
